@@ -73,6 +73,20 @@ Para que la aplicación móvil pueda comunicarse con el backend, debes configura
 
 ---
 
+## 🎨 Sistema de Diseño
+
+El proyecto cuenta con un sistema de diseño visual sobrio, accesible (WCAG AA) y consistente entre plataformas (Android e iOS):
+
+- **Tokens de Diseño (`src/theme/tokens.ts`):** Paleta de colores en modo claro (por defecto) y oscuro, escalas de espaciado (`4` a `32`), radios (`8` a `pill`), sombras multiplataforma y tipografía Inter (`400`, `500`, `600`, `700`).
+- **Tema y Persistencia (`src/theme/`):** Contexto `ThemeProvider` y hook `useTheme()`. La preferencia se guarda en `AsyncStorage` (`autoclean.theme`) y se precarga antes del primer render visible junto con la fuente.
+- **Fases del Lavado (`src/lib/phases.ts`):** Fuente única de verdad para las 5 fases (`PENDIENTE`, `REMOJO`, `LAVADO`, `SECADO`, `LISTO`) con códigos de backend, etiquetas UI en español, porcentajes y sus iconos asociados.
+- **Logotipo SVG (`src/components/Logo.tsx`):** Silueta estilizada de auto con gota de agua en variantes `mark` y `full` con wordmark "AutoClean AI".
+- **Iconografía (`src/components/Icon.tsx`):** Envoltura tipada sobre Lucide React Native con tamaños estandarizados (16, 20, 24, 32).
+- **Componentes Base (`src/components/`):** `AppText`, `Button`, `Card`, `Badge`, `TextField`, `ThemeToggle` y `ScreenContainer` (con Safe Area y Keyboard Avoiding).
+- **Guía de Estilos (`src/app/style-guide.tsx`):** Pantalla de catálogo para validar todos los componentes, variantes y modos de color.
+
+---
+
 ## 🛠️ Scripts Disponibles
 
 - `npm run lint` - Ejecuta la verificación de código con ESLint.
