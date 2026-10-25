@@ -1,11 +1,4 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import {
   AuthUser,
@@ -101,12 +94,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setState('unauthenticated');
     });
 
-    checkSession();
+    let active = true;
+
+    async function initSession() {
+      try {
+        const token = await getToken();
+        if (!active) {
+          return;
+        }
+        if (!token) {
+          setUser(null);
+          setState('unauthenticated');
+          return;
+        }
+
+        const me: AuthUser = await getMe(token);
+        if (!active) {
+          return;
+        }
+        setUser({
+          id: me.id,
+          nombre: me.nombre,
+          email: me.email,
+          role: me.rol,
+        });
+        setState('authenticated');
+      } catch (error) {
+        if (!active) {
+          return;
+        }
+        if (error instanceof ApiError) {
+          if (error.code === 'NETWORK_ERROR') {
+            setState('offline');
+            return;
+          }
+
+          if (error.status === 401 || error.code === 'INVALID_CREDENTIALS') {
+            await deleteToken().catch(() => {});
+            setUser(null);
+            setState('unauthenticated');
+            return;
+          }
+        }
+        setState('offline');
+      }
+    }
+
+    void initSession();
 
     return () => {
+      active = false;
       setUnauthorizedHandler(null);
     };
-  }, [checkSession]);
+  }, []);
 
   const signIn = useCallback(async (credentials: LoginRequest) => {
     const response = await login(credentials);

@@ -1,10 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 
 import { ApiError } from '@/api/client';
@@ -12,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { TextField } from '@/components/TextField';
+import { TextField, TextFieldInstance } from '@/components/TextField';
 import { useAuth } from '@/features/auth';
 import { registerSchema } from '@/lib/validation';
 import { radius, spacing } from '@/theme/tokens';
@@ -40,9 +35,9 @@ export default function RegisterScreen() {
   }>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
-  const confirmPasswordRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextFieldInstance>(null);
+  const passwordRef = useRef<TextFieldInstance>(null);
+  const confirmPasswordRef = useRef<TextFieldInstance>(null);
 
   const validate = (
     currentNombre: string,
@@ -79,11 +74,7 @@ export default function RegisterScreen() {
         confirmPassword?: string;
       } = {};
       for (const issue of result.error.issues) {
-        const fieldName = issue.path[0] as
-          | 'nombre'
-          | 'email'
-          | 'password'
-          | 'confirmPassword';
+        const fieldName = issue.path[0] as 'nombre' | 'email' | 'password' | 'confirmPassword';
         if (fieldName && !errors[fieldName]) {
           errors[fieldName] = issue.message;
         }
@@ -194,7 +185,7 @@ export default function RegisterScreen() {
         if (err.code === 'VALIDATION_ERROR' && Array.isArray(err.details)) {
           const newErrors: { [key: string]: string } = {};
           let hasMapped = false;
-          for (const item of err.details as Array<{ field?: string; message?: string }>) {
+          for (const item of err.details as { field?: string; message?: string }[]) {
             if (item.field && item.message) {
               newErrors[item.field] = item.message;
               hasMapped = true;

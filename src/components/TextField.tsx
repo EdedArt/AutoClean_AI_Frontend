@@ -26,138 +26,146 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   showCounter?: boolean;
 }
 
-export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
-  {
-    label,
-    helperText,
-    errorText,
-    rightIcon,
-    onRightIconPress,
-    style,
-    containerStyle,
-    maxLength,
-    showCounter = false,
-    value,
-    onChangeText,
-    editable = true,
-    ...rest
-  },
-  ref,
-) {
-  const { colors } = useTheme();
-  const [isFocused, setIsFocused] = useState(false);
+export type TextFieldInstance = React.ElementRef<typeof TextInput>;
 
-  const hasError = Boolean(errorText);
-  const currentLength = value?.length ?? 0;
+export const TextField = forwardRef<React.ElementRef<typeof TextInput>, TextFieldProps>(
+  function TextField(
+    {
+      label,
+      helperText,
+      errorText,
+      rightIcon,
+      onRightIconPress,
+      style,
+      containerStyle,
+      maxLength,
+      showCounter = false,
+      value,
+      onChangeText,
+      editable = true,
+      ...rest
+    },
+    ref,
+  ) {
+    const { colors } = useTheme();
+    const [isFocused, setIsFocused] = useState(false);
 
-  let borderColor = colors.border;
-  if (hasError) {
-    borderColor = colors.danger;
-  } else if (isFocused) {
-    borderColor = colors.primary;
-  }
+    const hasError = Boolean(errorText);
+    const currentLength = value?.length ?? 0;
 
-  const backgroundColor = editable ? colors.surface : colors.readOnlyBackground;
+    let borderColor = colors.border;
+    if (hasError) {
+      borderColor = colors.danger;
+    } else if (isFocused) {
+      borderColor = colors.primary;
+    }
 
-  return (
-    <View style={[styles.wrapper, containerStyle]}>
-      {label && (
-        <Text
+    const backgroundColor = editable ? colors.surface : colors.readOnlyBackground;
+
+    return (
+      <View style={[styles.wrapper, containerStyle]}>
+        {label && (
+          <Text
+            style={[
+              styles.label,
+              {
+                color: hasError ? colors.danger : colors.text,
+                fontFamily: typography.fonts.medium,
+              },
+            ]}
+          >
+            {label}
+          </Text>
+        )}
+
+        <View
           style={[
-            styles.label,
+            styles.inputContainer,
             {
-              color: hasError ? colors.danger : colors.text,
-              fontFamily: typography.fonts.medium,
+              backgroundColor,
+              borderColor,
+              borderWidth: isFocused || hasError ? 1.5 : 1,
+              borderRadius: radius[12],
             },
+            style,
           ]}
         >
-          {label}
-        </Text>
-      )}
+          <TextInput
+            ref={ref}
+            value={value}
+            onChangeText={onChangeText}
+            editable={editable}
+            maxLength={maxLength}
+            placeholderTextColor={colors.textMuted}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            style={[
+              styles.input,
+              {
+                color: colors.text,
+                fontFamily: typography.fonts.regular,
+              },
+            ]}
+            accessibilityLabel={label}
+            accessibilityRole="none"
+            {...rest}
+          />
 
-      <View
-        style={[
-          styles.inputContainer,
-          {
-            backgroundColor,
-            borderColor,
-            borderWidth: isFocused || hasError ? 1.5 : 1,
-            borderRadius: radius[12],
-          },
-          style,
-        ]}
-      >
-        <TextInput
-          ref={ref}
-          value={value}
-          onChangeText={onChangeText}
-          editable={editable}
-          maxLength={maxLength}
-          placeholderTextColor={colors.textMuted}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          style={[
-            styles.input,
-            {
-              color: colors.text,
-              fontFamily: typography.fonts.regular,
-            },
-          ]}
-          accessibilityLabel={label}
-          accessibilityRole="none"
-          {...rest}
-        />
-
-        {rightIcon && (
-          <Pressable
-            onPress={onRightIconPress}
-            disabled={!onRightIconPress}
-            hitSlop={8}
-            style={styles.rightIconButton}
-            accessibilityRole={onRightIconPress ? 'button' : 'none'}
-          >
-            <Icon name={rightIcon} size={20} color={hasError ? colors.danger : colors.textMuted} />
-          </Pressable>
-        )}
-      </View>
-
-      <View style={styles.footer}>
-        <View style={styles.messageContainer}>
-          {hasError ? (
-            <Text
-              style={[
-                styles.helperText,
-                { color: colors.danger, fontFamily: typography.fonts.regular },
-              ]}
+          {rightIcon && (
+            <Pressable
+              onPress={onRightIconPress}
+              disabled={!onRightIconPress}
+              hitSlop={8}
+              style={styles.rightIconButton}
+              accessibilityRole={onRightIconPress ? 'button' : 'none'}
             >
-              {errorText}
-            </Text>
-          ) : helperText ? (
+              <Icon
+                name={rightIcon}
+                size={20}
+                color={hasError ? colors.danger : colors.textMuted}
+              />
+            </Pressable>
+          )}
+        </View>
+
+        <View style={styles.footer}>
+          <View style={styles.messageContainer}>
+            {hasError ? (
+              <Text
+                style={[
+                  styles.helperText,
+                  { color: colors.danger, fontFamily: typography.fonts.regular },
+                ]}
+              >
+                {errorText}
+              </Text>
+            ) : helperText ? (
+              <Text
+                style={[
+                  styles.helperText,
+                  { color: colors.textMuted, fontFamily: typography.fonts.regular },
+                ]}
+              >
+                {helperText}
+              </Text>
+            ) : null}
+          </View>
+
+          {showCounter && maxLength !== undefined && (
             <Text
               style={[
-                styles.helperText,
+                styles.counterText,
                 { color: colors.textMuted, fontFamily: typography.fonts.regular },
               ]}
             >
-              {helperText}
+              {currentLength}/{maxLength}
             </Text>
-          ) : null}
+          )}
         </View>
-
-        {showCounter && maxLength !== undefined && (
-          <Text
-            style={[
-              styles.counterText,
-              { color: colors.textMuted, fontFamily: typography.fonts.regular },
-            ]}
-          >
-            {currentLength}/{maxLength}
-          </Text>
-        )}
       </View>
-    </View>
-  );
-});
+    );
+  },
+);
 
 const styles = StyleSheet.create({
   wrapper: {

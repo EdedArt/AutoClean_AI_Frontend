@@ -1,10 +1,5 @@
 import React, { useRef, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 
 import { ApiError } from '@/api/client';
@@ -12,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { TextField } from '@/components/TextField';
+import { TextField, TextFieldInstance } from '@/components/TextField';
 import { useAuth } from '@/features/auth';
 import { loginSchema } from '@/lib/validation';
 import { radius, spacing } from '@/theme/tokens';
@@ -31,7 +26,7 @@ export default function LoginScreen() {
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const passwordRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextFieldInstance>(null);
 
   const validate = (
     currentEmail: string,
