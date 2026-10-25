@@ -87,6 +87,27 @@ El proyecto cuenta con un sistema de diseño visual sobrio, accesible (WCAG AA) 
 
 ---
 
+## 🔐 Autenticación y Sesión
+
+La aplicación implementa un sistema de autenticación persistente y enrutamiento protegido basado en roles:
+
+- **Flujo de autenticación:**
+  - **Inicio de sesión (`/login`):** Validación en tiempo real con Zod (correo máx. 100 caracteres; contraseña máx. 12 caracteres), manejo de errores de credenciales, tasa límite y conexión sin revelar qué campo falló.
+  - **Registro (`/register`):** Creación pública de cuentas de cliente (nombre 2 a 60 caracteres, contraseña de 8 a 12 caracteres, confirmación coincidente). Inmediatamente tras registrar exitosamente en el backend, la aplicación inicia sesión automáticamente y redirige al panel de cliente.
+  - **Restauración de sesión:** En el arranque, la app consulta el token en almacenamiento seguro y valida la identidad con `GET /api/auth/me`. La pantalla de bienvenida nativa (`expo-splash-screen`) se mantiene visible hasta completar esta validación.
+- **Almacenamiento seguro de tokens:** El token JWT se almacena de forma segura en el dispositivo mediante `expo-secure-store` bajo la clave `autoclean.token`. Las contraseñas nunca se guardan en el dispositivo ni en almacenamiento persistente, y los tokens nunca son expuestos en registros ni vistas.
+- **Manejo de estado fuera de línea:** Si el backend no está disponible al iniciar o al consultar la sesión, la app muestra una pantalla sobria con icono `WifiOff` y botón de reintento, conservando la sesión local intacta sin forzar el cierre de sesión.
+- **Enrutamiento y separación por roles:**
+  - `CLIENTE` (mostrado como "Cliente"): Navega exclusivamente en el grupo de pestañas `(cliente)` (`/buscar`, `/perfil`).
+  - `OPERARIO` (mostrado como "Dueño"): Navega exclusivamente en el grupo de pestañas `(dueno)` (`/panel`, `/registrar`, `/perfil`).
+  - Cada grupo de rutas cuenta con guardias que impiden a un rol acceder a las pantallas del otro rol.
+  - Pantalla compartida de **Perfil** con información del usuario, etiqueta de rol tipada, alternador de tema claro/oscuro y diálogo de confirmación para cerrar sesión.
+- **Cuentas de demostración disponibles:**
+  - **Cliente:** `cliente@autoclean.com` / `Demo12345!`
+  - **Dueño (Operario):** `operario@autoclean.com` / `Demo12345!`
+
+---
+
 ## 🛠️ Scripts Disponibles
 
 - `npm run lint` - Ejecuta la verificación de código con ESLint.
