@@ -38,7 +38,11 @@ export default function DuenoLayout() {
           title: 'Panel',
           tabBarLabel: 'Panel',
           tabBarIcon: ({ color, size }) => (
-            <Icon name="LayoutDashboard" size={size} color={color} />
+            <Icon
+              name="LayoutDashboard"
+              size={size}
+              color={typeof color === 'string' ? color : undefined}
+            />
           ),
         }}
       />
@@ -48,7 +52,11 @@ export default function DuenoLayout() {
           title: 'Registrar',
           tabBarLabel: 'Registrar',
           tabBarIcon: ({ color, size }) => (
-            <Icon name="ClipboardList" size={size} color={color} />
+            <Icon
+              name="ClipboardList"
+              size={size}
+              color={typeof color === 'string' ? color : undefined}
+            />
           ),
         }}
       />
@@ -57,7 +65,9 @@ export default function DuenoLayout() {
         options={{
           title: 'Perfil',
           tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color, size }) => <Icon name="User" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="User" size={size} color={typeof color === 'string' ? color : undefined} />
+          ),
         }}
       />
     </Tabs>

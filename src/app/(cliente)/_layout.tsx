@@ -37,7 +37,9 @@ export default function ClienteLayout() {
         options={{
           title: 'Buscar',
           tabBarLabel: 'Buscar',
-          tabBarIcon: ({ color, size }) => <Icon name="Search" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="Search" size={size} color={typeof color === 'string' ? color : undefined} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -45,7 +47,9 @@ export default function ClienteLayout() {
         options={{
           title: 'Perfil',
           tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color, size }) => <Icon name="User" size={size} color={color} />,
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="User" size={size} color={typeof color === 'string' ? color : undefined} />
+          ),
         }}
       />
     </Tabs>
