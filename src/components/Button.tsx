@@ -70,9 +70,9 @@ export function Button({
 
   // Padding & height per size, minimum touch target is 44
   let minHeight = 44;
-  let paddingHorizontal = spacing[16];
+  let paddingHorizontal: number = spacing[16];
   let fontSize = 15;
-  let iconSize = 20;
+  let iconSize: 16 | 20 | 24 | 32 = 20;
 
   if (size === 'sm') {
     minHeight = 44;
