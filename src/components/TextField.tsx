@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { forwardRef, useState } from 'react';
 import {
   Pressable,
   StyleProp,
@@ -26,21 +26,24 @@ export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   showCounter?: boolean;
 }
 
-export function TextField({
-  label,
-  helperText,
-  errorText,
-  rightIcon,
-  onRightIconPress,
-  style,
-  containerStyle,
-  maxLength,
-  showCounter = false,
-  value,
-  onChangeText,
-  editable = true,
-  ...rest
-}: TextFieldProps) {
+export const TextField = forwardRef<TextInput, TextFieldProps>(function TextField(
+  {
+    label,
+    helperText,
+    errorText,
+    rightIcon,
+    onRightIconPress,
+    style,
+    containerStyle,
+    maxLength,
+    showCounter = false,
+    value,
+    onChangeText,
+    editable = true,
+    ...rest
+  },
+  ref,
+) {
   const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
@@ -85,6 +88,7 @@ export function TextField({
         ]}
       >
         <TextInput
+          ref={ref}
           value={value}
           onChangeText={onChangeText}
           editable={editable}
@@ -153,7 +157,7 @@ export function TextField({
       </View>
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   wrapper: {
