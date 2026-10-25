@@ -10,7 +10,17 @@ export default function HomeScreen() {
   const [status, setStatus] = useState<ConnectionStatus>('loading');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const checkHealth = useCallback(async () => {
+  const resolveErrorMessage = (error: unknown): string => {
+    if (error instanceof ApiError) {
+      return error.message;
+    }
+    if (error instanceof Error) {
+      return error.message;
+    }
+    return 'Ocurrió un error inesperado';
+  };
+
+  const handleRetry = useCallback(async () => {
     setStatus('loading');
     setErrorMessage(null);
     try {
@@ -18,19 +28,30 @@ export default function HomeScreen() {
       setStatus('success');
     } catch (error: unknown) {
       setStatus('error');
-      if (error instanceof ApiError) {
-        setErrorMessage(error.message);
-      } else if (error instanceof Error) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage('Ocurrió un error inesperado');
-      }
+      setErrorMessage(resolveErrorMessage(error));
     }
   }, []);
 
   useEffect(() => {
-    checkHealth();
-  }, [checkHealth]);
+    let isMounted = true;
+
+    getHealth()
+      .then(() => {
+        if (isMounted) {
+          setStatus('success');
+        }
+      })
+      .catch((error: unknown) => {
+        if (isMounted) {
+          setStatus('error');
+          setErrorMessage(resolveErrorMessage(error));
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -54,7 +75,7 @@ export default function HomeScreen() {
           <Text style={[styles.statusText, styles.errorText]}>Sin conexión con el servidor</Text>
           {errorMessage ? <Text style={styles.errorDetail}>{errorMessage}</Text> : null}
           <View style={styles.buttonWrapper}>
-            <Button title="Reintentar" onPress={checkHealth} color="#0066cc" />
+            <Button title="Reintentar" onPress={handleRetry} color="#0066cc" />
           </View>
         </View>
       )}

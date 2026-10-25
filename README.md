@@ -16,6 +16,7 @@ Aplicación móvil desarrollada con **Expo (React Native)**, **TypeScript** y **
 ## 🚀 Instalación
 
 1. Clona el repositorio e ingresa al directorio del proyecto:
+
    ```bash
    cd Frontend
    ```
@@ -32,14 +33,17 @@ Aplicación móvil desarrollada con **Expo (React Native)**, **TypeScript** y **
 Para que la aplicación móvil pueda comunicarse con el backend, debes configurar la IP local de tu computador:
 
 1. Copia la plantilla de entorno:
+
    ```bash
    copy .env.example .env
    ```
 
 2. Averigua tu IP local en Windows ejecutando:
+
    ```cmd
    ipconfig
    ```
+
    Ubica la dirección IPv4 de tu adaptador de red (ejemplo: `192.168.1.15`).
 
 3. Edita `.env` y define la URL del backend (no uses `localhost` si pruebas en un dispositivo físico):
@@ -58,6 +62,7 @@ Para que la aplicación móvil pueda comunicarse con el backend, debes configura
    El backend de Node/Express debe estar activo y respondiendo en el puerto 3000 (puedes verificar en el navegador: `http://localhost:3000/api/health`).
 
 2. **Inicia el servidor de desarrollo de Expo:**
+
    ```bash
    npx expo start
    ```
