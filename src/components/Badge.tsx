@@ -3,7 +3,7 @@ import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 import { AppIconName, Icon } from './Icon';
 import { getPhase } from '@/lib/phases';
-import { radius, spacing, typography, WashPhaseCode } from '@/theme/tokens';
+import { radius, spacing, typography, WashPhaseCode, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export type BadgeVariant =
@@ -41,31 +41,34 @@ export function Badge({ label, variant = 'default', phase, icon, size = 'md', st
       iconName = icon ?? phaseInfo.icon;
     }
   } else {
+    const bgAlpha = isDark ? 0.15 : 0.1;
+    const borderAlpha = isDark ? 0.3 : 0.2;
+
     switch (variant) {
       case 'primary':
-        backgroundColor = isDark ? 'rgba(34, 211, 238, 0.15)' : 'rgba(14, 116, 144, 0.1)';
+        backgroundColor = withAlpha(colors.primary, bgAlpha);
         textColor = colors.primary;
-        borderColor = isDark ? 'rgba(34, 211, 238, 0.3)' : 'rgba(14, 116, 144, 0.2)';
+        borderColor = withAlpha(colors.primary, borderAlpha);
         break;
       case 'accent':
-        backgroundColor = isDark ? 'rgba(52, 211, 153, 0.15)' : 'rgba(16, 185, 129, 0.1)';
+        backgroundColor = withAlpha(colors.accent, bgAlpha);
         textColor = colors.accent;
-        borderColor = isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(16, 185, 129, 0.2)';
+        borderColor = withAlpha(colors.accent, borderAlpha);
         break;
       case 'danger':
-        backgroundColor = isDark ? 'rgba(248, 113, 113, 0.15)' : 'rgba(220, 38, 38, 0.1)';
+        backgroundColor = withAlpha(colors.danger, bgAlpha);
         textColor = colors.danger;
-        borderColor = isDark ? 'rgba(248, 113, 113, 0.3)' : 'rgba(220, 38, 38, 0.2)';
+        borderColor = withAlpha(colors.danger, borderAlpha);
         break;
       case 'warning':
-        backgroundColor = isDark ? 'rgba(251, 191, 36, 0.15)' : 'rgba(217, 119, 6, 0.1)';
+        backgroundColor = withAlpha(colors.warning, bgAlpha);
         textColor = colors.warning;
-        borderColor = isDark ? 'rgba(251, 191, 36, 0.3)' : 'rgba(217, 119, 6, 0.2)';
+        borderColor = withAlpha(colors.warning, borderAlpha);
         break;
       case 'info':
-        backgroundColor = isDark ? 'rgba(56, 189, 248, 0.15)' : 'rgba(2, 132, 199, 0.1)';
+        backgroundColor = withAlpha(colors.info, bgAlpha);
         textColor = colors.info;
-        borderColor = isDark ? 'rgba(56, 189, 248, 0.3)' : 'rgba(2, 132, 199, 0.2)';
+        borderColor = withAlpha(colors.info, borderAlpha);
         break;
       default:
         break;
