@@ -43,7 +43,7 @@ export function Button({
   accessibilityLabel,
   accessibilityHint,
 }: ButtonProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
 
   const isInteractive = !disabled && !loading;
 
@@ -54,17 +54,17 @@ export function Button({
 
   switch (variant) {
     case 'primary':
-      backgroundColor = disabled ? (isDark ? '#1E293B' : '#E2E8F0') : colors.primary;
-      textColor = disabled ? (isDark ? '#64748B' : '#94A3B8') : colors.onPrimary;
+      backgroundColor = disabled ? colors.disabledBackground : colors.primary;
+      textColor = disabled ? colors.disabledText : colors.onPrimary;
       break;
     case 'secondary':
       backgroundColor = disabled ? 'transparent' : colors.surfaceAlt;
-      textColor = disabled ? (isDark ? '#64748B' : '#94A3B8') : colors.text;
-      borderColor = disabled ? (isDark ? '#24324A' : '#E2E8F0') : colors.border;
+      textColor = disabled ? colors.disabledText : colors.text;
+      borderColor = disabled ? colors.disabledBorder : colors.border;
       break;
     case 'ghost':
       backgroundColor = 'transparent';
-      textColor = disabled ? (isDark ? '#64748B' : '#94A3B8') : colors.primary;
+      textColor = disabled ? colors.disabledText : colors.primary;
       break;
   }
 
