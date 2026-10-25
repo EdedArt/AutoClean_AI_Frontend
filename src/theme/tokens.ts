@@ -13,6 +13,18 @@ export interface ColorPalette {
   danger: string;
   warning: string;
   info: string;
+  disabledBackground: string;
+  disabledText: string;
+  disabledBorder: string;
+  readOnlyBackground: string;
+}
+
+export function withAlpha(hex: string, alpha: number): string {
+  const cleanHex = hex.replace('#', '');
+  const r = parseInt(cleanHex.slice(0, 2), 16);
+  const g = parseInt(cleanHex.slice(2, 4), 16);
+  const b = parseInt(cleanHex.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export interface PhaseColor {
@@ -39,6 +51,10 @@ export const lightPalette: ColorPalette = {
   danger: '#DC2626',
   warning: '#D97706',
   info: '#0284C7',
+  disabledBackground: '#E2E8F0',
+  disabledText: '#94A3B8',
+  disabledBorder: '#E2E8F0',
+  readOnlyBackground: '#E2E8F0',
 };
 
 export const darkPalette: ColorPalette = {
@@ -54,6 +70,10 @@ export const darkPalette: ColorPalette = {
   danger: '#F87171',
   warning: '#FBBF24',
   info: '#38BDF8',
+  disabledBackground: '#1E293B',
+  disabledText: '#64748B',
+  disabledBorder: '#24324A',
+  readOnlyBackground: '#17233A',
 };
 
 export const lightPhaseColors: PhaseColorMap = {
