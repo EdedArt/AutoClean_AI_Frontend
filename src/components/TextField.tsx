@@ -41,7 +41,7 @@ export function TextField({
   editable = true,
   ...rest
 }: TextFieldProps) {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
 
   const hasError = Boolean(errorText);
@@ -54,7 +54,7 @@ export function TextField({
     borderColor = colors.primary;
   }
 
-  const backgroundColor = editable ? colors.surface : isDark ? colors.surfaceAlt : '#E2E8F0';
+  const backgroundColor = editable ? colors.surface : colors.readOnlyBackground;
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
