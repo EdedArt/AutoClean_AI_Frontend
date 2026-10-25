@@ -13,13 +13,7 @@ export interface LogoProps {
   style?: ViewStyle;
 }
 
-export function Logo({
-  size = 40,
-  variant = 'full',
-  color,
-  accentColor,
-  style,
-}: LogoProps) {
+export function Logo({ size = 40, variant = 'full', color, accentColor, style }: LogoProps) {
   const { colors } = useTheme();
 
   const primaryColor = color ?? colors.primary;
@@ -52,16 +46,10 @@ export function Logo({
       />
 
       {/* Front Window Cutout */}
-      <Path
-        d="M 64 25 L 54 25 L 54 32 L 74 32 C 71 28 67 25 64 25 Z"
-        fill={colors.surface}
-      />
+      <Path d="M 64 25 L 54 25 L 54 32 L 74 32 C 71 28 67 25 64 25 Z" fill={colors.surface} />
 
       {/* Rear Window Cutout */}
-      <Path
-        d="M 51 25 L 45 25 C 41 26 35 31 33 32 L 51 32 Z"
-        fill={colors.surface}
-      />
+      <Path d="M 51 25 L 45 25 C 41 26 35 31 33 32 L 51 32 Z" fill={colors.surface} />
 
       {/* Rear Wheel */}
       <Circle cx="29" cy="44" r="8" fill={primaryColor} />
@@ -86,9 +74,7 @@ export function Logo({
     <View style={[styles.container, style]}>
       {iconElement}
       <View style={styles.textContainer}>
-        <Text style={[styles.title, { color: textColor, fontSize: titleFontSize }]}>
-          AutoClean
-        </Text>
+        <Text style={[styles.title, { color: textColor, fontSize: titleFontSize }]}>AutoClean</Text>
         <View style={[styles.aiBadge, { backgroundColor: primaryColor }]}>
           <Text style={[styles.aiText, { color: colors.onPrimary, fontSize: aiBadgeFontSize }]}>
             AI

@@ -7,13 +7,7 @@ import { radius, spacing, typography, WashPhaseCode } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export type BadgeVariant =
-  | 'default'
-  | 'primary'
-  | 'accent'
-  | 'danger'
-  | 'warning'
-  | 'info'
-  | 'phase';
+  'default' | 'primary' | 'accent' | 'danger' | 'warning' | 'info' | 'phase';
 
 export interface BadgeProps {
   label?: string;
@@ -24,14 +18,7 @@ export interface BadgeProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export function Badge({
-  label,
-  variant = 'default',
-  phase,
-  icon,
-  size = 'md',
-  style,
-}: BadgeProps) {
+export function Badge({ label, variant = 'default', phase, icon, size = 'md', style }: BadgeProps) {
   const { colors, phaseColors, isDark } = useTheme();
 
   let backgroundColor = colors.surfaceAlt;

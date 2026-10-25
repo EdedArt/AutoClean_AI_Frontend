@@ -4,15 +4,7 @@ import { router } from 'expo-router';
 
 import { ApiError } from '@/api/client';
 import { getHealth } from '@/api/health';
-import {
-  AppText,
-  Button,
-  Card,
-  Icon,
-  Logo,
-  ScreenContainer,
-  ThemeToggle,
-} from '@/components';
+import { AppText, Button, Card, Icon, Logo, ScreenContainer, ThemeToggle } from '@/components';
 import { spacing } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
@@ -94,10 +86,7 @@ export default function HomeScreen() {
               <View style={[styles.iconCircle, { backgroundColor: 'rgba(16, 185, 129, 0.15)' }]}>
                 <Icon name="CircleCheck" size={28} color={colors.accent} />
               </View>
-              <AppText
-                variant="subtitle"
-                style={[styles.statusTitle, { color: colors.accent }]}
-              >
+              <AppText variant="subtitle" style={[styles.statusTitle, { color: colors.accent }]}>
                 Servidor conectado
               </AppText>
               <AppText variant="caption" muted style={styles.statusDescription}>
@@ -111,10 +100,7 @@ export default function HomeScreen() {
               <View style={[styles.iconCircle, { backgroundColor: 'rgba(220, 38, 38, 0.15)' }]}>
                 <Icon name="WifiOff" size={28} color={colors.danger} />
               </View>
-              <AppText
-                variant="subtitle"
-                style={[styles.statusTitle, { color: colors.danger }]}
-              >
+              <AppText variant="subtitle" style={[styles.statusTitle, { color: colors.danger }]}>
                 Sin conexión con el servidor
               </AppText>
               {errorMessage ? (

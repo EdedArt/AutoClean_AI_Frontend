@@ -54,11 +54,7 @@ export function TextField({
     borderColor = colors.primary;
   }
 
-  const backgroundColor = editable
-    ? colors.surface
-    : isDark
-      ? colors.surfaceAlt
-      : '#E2E8F0';
+  const backgroundColor = editable ? colors.surface : isDark ? colors.surfaceAlt : '#E2E8F0';
 
   return (
     <View style={[styles.wrapper, containerStyle]}>
@@ -116,11 +112,7 @@ export function TextField({
             style={styles.rightIconButton}
             accessibilityRole={onRightIconPress ? 'button' : 'none'}
           >
-            <Icon
-              name={rightIcon}
-              size={20}
-              color={hasError ? colors.danger : colors.textMuted}
-            />
+            <Icon name={rightIcon} size={20} color={hasError ? colors.danger : colors.textMuted} />
           </Pressable>
         )}
       </View>

@@ -95,36 +95,16 @@ export default function StyleGuideScreen() {
           Botones y Estados
         </AppText>
         <View style={styles.columnGap}>
-          <Button
-            title="Botón Primario"
-            variant="primary"
-            leftIcon="Check"
-            onPress={() => {}}
-          />
+          <Button title="Botón Primario" variant="primary" leftIcon="Check" onPress={() => {}} />
           <Button
             title="Botón Secundario"
             variant="secondary"
             leftIcon="RefreshCw"
             onPress={() => {}}
           />
-          <Button
-            title="Botón Ghost"
-            variant="ghost"
-            rightIcon="ChevronRight"
-            onPress={() => {}}
-          />
-          <Button
-            title="Cargando..."
-            variant="primary"
-            loading
-            onPress={() => {}}
-          />
-          <Button
-            title="Deshabilitado"
-            variant="primary"
-            disabled
-            onPress={() => {}}
-          />
+          <Button title="Botón Ghost" variant="ghost" rightIcon="ChevronRight" onPress={() => {}} />
+          <Button title="Cargando..." variant="primary" loading onPress={() => {}} />
+          <Button title="Deshabilitado" variant="primary" disabled onPress={() => {}} />
         </View>
       </Card>
 
@@ -186,10 +166,7 @@ export default function StyleGuideScreen() {
         </AppText>
         <View style={styles.iconGrid}>
           {ALL_ICONS.map((iconName) => (
-            <View
-              key={iconName}
-              style={[styles.iconCard, { backgroundColor: colors.surfaceAlt }]}
-            >
+            <View key={iconName} style={[styles.iconCard, { backgroundColor: colors.surfaceAlt }]}>
               <Icon name={iconName} size={22} color={colors.primary} />
               <AppText variant="caption" style={styles.iconNameText} numberOfLines={1}>
                 {iconName}

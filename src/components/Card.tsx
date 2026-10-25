@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewProps,
-  ViewStyle,
-} from 'react-native';
+import { Pressable, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native';
 
 import { radius, shadows, spacing } from '@/theme/tokens';
 import { useTheme } from '@/theme';
@@ -18,13 +11,7 @@ export interface CardProps extends ViewProps {
   children?: React.ReactNode;
 }
 
-export function Card({
-  onPress,
-  variant = 'elevated',
-  style,
-  children,
-  ...rest
-}: CardProps) {
+export function Card({ onPress, variant = 'elevated', style, children, ...rest }: CardProps) {
   const { colors, isDark } = useTheme();
 
   const isInteractive = typeof onPress === 'function';
