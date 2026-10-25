@@ -84,10 +84,7 @@ export default function HomeScreen() {
           {status === 'success' && (
             <View style={styles.stateWrapper}>
               <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: withAlpha(colors.accent, 0.15) },
-                ]}
+                style={[styles.iconCircle, { backgroundColor: withAlpha(colors.accent, 0.15) }]}
               >
                 <Icon name="CircleCheck" size={28} color={colors.accent} />
               </View>
@@ -103,10 +100,7 @@ export default function HomeScreen() {
           {status === 'error' && (
             <View style={styles.stateWrapper}>
               <View
-                style={[
-                  styles.iconCircle,
-                  { backgroundColor: withAlpha(colors.danger, 0.15) },
-                ]}
+                style={[styles.iconCircle, { backgroundColor: withAlpha(colors.danger, 0.15) }]}
               >
                 <Icon name="WifiOff" size={28} color={colors.danger} />
               </View>
