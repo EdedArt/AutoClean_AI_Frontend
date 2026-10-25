@@ -29,6 +29,14 @@ export interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
 const DEFAULT_TIMEOUT_MS = 10000;
 
 export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
@@ -104,6 +112,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
   }
 
   if (!response.ok) {
+    if (response.status === 401 && (token || requestHeaders.Authorization)) {
+      unauthorizedHandler?.();
+    }
+
     const errorPayload = data as BackendErrorPayload | null;
     const backendError = errorPayload?.error;
 
