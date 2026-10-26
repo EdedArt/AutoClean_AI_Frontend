@@ -9,12 +9,14 @@ import {
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
+import { AuthProvider, useAuth } from '@/features/auth';
 import { ThemeProvider, useTheme } from '@/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function RootNavigator() {
   const { isThemeReady, colors } = useTheme();
+  const { state: authState } = useAuth();
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -22,13 +24,15 @@ function RootNavigator() {
     Inter_700Bold,
   });
 
+  const isReady = fontsLoaded && isThemeReady && authState !== 'loading';
+
   useEffect(() => {
-    if (fontsLoaded && isThemeReady) {
+    if (isReady) {
       SplashScreen.hideAsync().catch(() => {});
     }
-  }, [fontsLoaded, isThemeReady]);
+  }, [isReady]);
 
-  if (!fontsLoaded || !isThemeReady) {
+  if (!isReady) {
     return null;
   }
 
@@ -45,7 +49,9 @@ function RootNavigator() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootNavigator />
+      <AuthProvider>
+        <RootNavigator />
+      </AuthProvider>
     </ThemeProvider>
   );
 }
