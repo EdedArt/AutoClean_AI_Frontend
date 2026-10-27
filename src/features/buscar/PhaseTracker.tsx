@@ -16,7 +16,7 @@ export function PhaseTracker({ currentPhase }: PhaseTrackerProps) {
   const currentIndex = getPhaseIndex(currentPhase);
 
   return (
-    <View style={styles.container} accessibilityRole="progressbar">
+    <View style={styles.container}>
       <View style={styles.stepsRow}>
         {WASH_PHASES.map((phase, index) => {
           const isCompleted = index < currentIndex;

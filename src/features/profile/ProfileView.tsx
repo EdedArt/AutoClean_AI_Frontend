@@ -52,7 +52,7 @@ export function ProfileView() {
         <AppText variant="title" style={styles.nameText}>
           {user?.nombre || 'Usuario'}
         </AppText>
-        <AppText variant="caption" color="textMuted" style={styles.emailText}>
+        <AppText variant="caption" muted style={styles.emailText}>
           {user?.email || ''}
         </AppText>
         <View style={styles.badgeRow}>
@@ -70,7 +70,7 @@ export function ProfileView() {
           Apariencia
         </AppText>
         <View style={styles.themeRow}>
-          <AppText variant="body" color="textMuted">
+          <AppText variant="body" muted>
             Tema de la aplicación
           </AppText>
           <ThemeToggle showLabel={false} />

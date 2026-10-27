@@ -28,7 +28,11 @@ export function AppText({
   const { colors } = useTheme();
 
   const variantStyle = typography[variant];
-  const textColor = color ?? (muted ? colors.textMuted : colors.text);
+  const isPaletteKey = (key: string): key is keyof typeof colors => key in colors;
+  const textColor =
+    color && isPaletteKey(color)
+      ? colors[color]
+      : (color ?? (muted ? colors.textMuted : colors.text));
 
   let fontFamily = variantStyle.fontFamily;
   if (weight) {
