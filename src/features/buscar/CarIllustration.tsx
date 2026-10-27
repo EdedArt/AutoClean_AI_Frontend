@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AccessibilityInfo,
   Animated,
@@ -27,11 +27,11 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
     () => (AppState.currentState as AppStateStatus) || 'active',
   );
 
-  // Animated values for phase effects
-  const waterAnim = useRef(new Animated.Value(0)).current;
-  const foamAnim = useRef(new Animated.Value(0)).current;
-  const windAnim = useRef(new Animated.Value(0)).current;
-  const listoAnim = useRef(new Animated.Value(0)).current;
+  // Animated values for phase effects (using useState for stable instances without reading refs during render)
+  const [waterAnim] = useState(() => new Animated.Value(0));
+  const [foamAnim] = useState(() => new Animated.Value(0));
+  const [windAnim] = useState(() => new Animated.Value(0));
+  const [listoAnim] = useState(() => new Animated.Value(0));
 
   // Listen to reduce-motion accessibility settings
   useEffect(() => {
