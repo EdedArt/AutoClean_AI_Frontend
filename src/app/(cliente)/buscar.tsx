@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import { PlateSearchField } from '@/features/buscar/PlateSearchField';
@@ -10,6 +10,7 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { useAuth } from '@/features/auth';
+import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { spacing } from '@/theme/tokens';
 
@@ -18,6 +19,8 @@ export default function BuscarScreen() {
   const { colors } = useTheme();
   const [inputText, setInputText] = useState('');
   const [searchedPlate, setSearchedPlate] = useState('');
+  const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const previousPhaseRef = useRef<string | null>(null);
 
   const {
     data,
@@ -29,6 +32,16 @@ export default function BuscarScreen() {
     refetch,
   } = usePlateStatus(searchedPlate);
 
+  useEffect(() => {
+    if (data?.fase && data.fase !== previousPhaseRef.current) {
+      const phaseInfo = getPhase(data.fase);
+      const label = phaseInfo?.label ?? data.fase;
+      const announcement = `Fase actual: ${label}, ${data.porcentajeProgreso} por ciento`;
+      setLiveAnnouncement(announcement);
+      previousPhaseRef.current = data.fase;
+    }
+  }, [data?.fase, data?.porcentajeProgreso]);
+
   const greetingName = user?.nombre ? user.nombre.split(' ')[0] : 'Cliente';
 
   const handleSearch = (plate: string) => {
@@ -38,10 +51,21 @@ export default function BuscarScreen() {
   const handleNewSearch = () => {
     setSearchedPlate('');
     setInputText('');
+    setLiveAnnouncement('');
+    previousPhaseRef.current = null;
   };
 
   return (
     <ScreenContainer scroll contentContainerStyle={styles.container}>
+      {/* Accessibility live region for screen reader announcements */}
+      <View
+        accessible
+        accessibilityLiveRegion="polite"
+        accessibilityRole="alert"
+        style={styles.srOnly}
+      >
+        <AppText>{liveAnnouncement}</AppText>
+      </View>
       {/* Header Greeting */}
       <View style={styles.header}>
         <AppText variant="title" weight="bold" style={styles.greetingTitle}>
@@ -249,5 +273,12 @@ const styles = StyleSheet.create({
   successNewSearchButton: {
     alignSelf: 'center',
     marginTop: spacing[4],
+  },
+  srOnly: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+    overflow: 'hidden',
   },
 });
