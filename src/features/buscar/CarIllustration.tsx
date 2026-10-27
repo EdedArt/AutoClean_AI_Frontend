@@ -262,36 +262,16 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
             />
 
             {/* Door line divider */}
-            <Line
-              x1="145"
-              y1="53"
-              x2="145"
-              y2="106"
-              stroke={colors.border}
-              strokeWidth="1.5"
-            />
+            <Line x1="145" y1="53" x2="145" y2="106" stroke={colors.border} strokeWidth="1.5" />
 
             {/* Door Handle */}
-            <Rect
-              x="152"
-              y="84"
-              width="12"
-              height="3"
-              rx="1.5"
-              fill={colors.onPrimary}
-            />
+            <Rect x="152" y="84" width="12" height="3" rx="1.5" fill={colors.onPrimary} />
 
             {/* Headlight */}
-            <Path
-              d="M 242 84 L 250 86 L 247 92 L 240 90 Z"
-              fill={colors.warning}
-            />
+            <Path d="M 242 84 L 250 86 L 247 92 L 240 90 Z" fill={colors.warning} />
 
             {/* Taillight */}
-            <Path
-              d="M 33 86 L 39 85 L 39 92 L 32 91 Z"
-              fill={colors.danger}
-            />
+            <Path d="M 33 86 L 39 85 L 39 92 L 32 91 Z" fill={colors.danger} />
 
             {/* Front Wheel (right) */}
             <Circle cx="204" cy="106" r="18" fill={colors.text} />

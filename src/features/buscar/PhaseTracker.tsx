@@ -32,11 +32,7 @@ export function PhaseTracker({ currentPhase }: PhaseTrackerProps) {
               ? phaseColors[phase.code].bg
               : colors.surfaceAlt;
 
-          const nodeBorder = isCompleted
-            ? colors.accent
-            : isCurrent
-              ? stepColor
-              : colors.border;
+          const nodeBorder = isCompleted ? colors.accent : isCurrent ? stepColor : colors.border;
 
           const nodeContentColor = isCompleted
             ? colors.onPrimary
@@ -44,11 +40,7 @@ export function PhaseTracker({ currentPhase }: PhaseTrackerProps) {
               ? stepColor
               : colors.disabledText;
 
-          const statusLabel = isCurrent
-            ? 'fase actual'
-            : isCompleted
-              ? 'completado'
-              : 'pendiente';
+          const statusLabel = isCurrent ? 'fase actual' : isCompleted ? 'completado' : 'pendiente';
 
           return (
             <React.Fragment key={phase.code}>

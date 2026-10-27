@@ -22,15 +22,8 @@ export default function BuscarScreen() {
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
   const previousPhaseRef = useRef<string | null>(null);
 
-  const {
-    data,
-    isPending,
-    isFetching,
-    isNotFound,
-    isRateLimited,
-    isNetworkError,
-    refetch,
-  } = usePlateStatus(searchedPlate);
+  const { data, isPending, isFetching, isNotFound, isRateLimited, isNetworkError, refetch } =
+    usePlateStatus(searchedPlate);
 
   useEffect(() => {
     if (data?.fase && data.fase !== previousPhaseRef.current) {
