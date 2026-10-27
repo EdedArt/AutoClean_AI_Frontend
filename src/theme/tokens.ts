@@ -62,7 +62,7 @@ export const darkPalette: ColorPalette = {
   surface: '#111A2B',
   surfaceAlt: '#17233A',
   text: '#E5EEF8',
-  textMuted: '#94A3B8',
+  textMuted: '#9FB2C8',
   border: '#24324A',
   primary: '#22D3EE',
   onPrimary: '#06222B',
@@ -71,7 +71,7 @@ export const darkPalette: ColorPalette = {
   warning: '#FBBF24',
   info: '#38BDF8',
   disabledBackground: '#1E293B',
-  disabledText: '#64748B',
+  disabledText: '#8295AB',
   disabledBorder: '#24324A',
   readOnlyBackground: '#17233A',
 };
@@ -111,7 +111,7 @@ export const lightPhaseColors: PhaseColorMap = {
 
 export const darkPhaseColors: PhaseColorMap = {
   PENDIENTE: {
-    main: '#94A3B8', // slate
+    main: '#9FB2C8', // slate
     bg: 'rgba(148, 163, 184, 0.16)',
     text: '#CBD5E1',
     border: 'rgba(148, 163, 184, 0.35)',
