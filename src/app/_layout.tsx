@@ -10,7 +10,9 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { AuthProvider, useAuth } from '@/features/auth';
+import { queryClient } from '@/lib/queryClient';
 import { ThemeProvider, useTheme } from '@/theme';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -25,6 +27,12 @@ function RootNavigator() {
   });
 
   const isReady = fontsLoaded && isThemeReady && authState !== 'loading';
+
+  useEffect(() => {
+    if (authState === 'unauthenticated') {
+      queryClient.clear();
+    }
+  }, [authState]);
 
   useEffect(() => {
     if (isReady) {
@@ -48,10 +56,12 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
