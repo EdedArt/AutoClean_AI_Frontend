@@ -321,7 +321,7 @@ export default function RegistrarScreen() {
               onPress={() => {
                 const targetId = createdOrder.id;
                 setCreatedOrder(null);
-                router.push(`/(dueno)/orden/${targetId}` as Href);
+                router.push(`/orden/${targetId}` as Href);
               }}
             />
           </View>
@@ -369,7 +369,7 @@ export default function RegistrarScreen() {
                   const id = submitBanner.activeOrderId;
                   setSubmitBanner(null);
                   if (id) {
-                    router.push(`/(dueno)/orden/${id}` as Href);
+                    router.push(`/orden/${id}` as Href);
                   }
                 }}
               />
