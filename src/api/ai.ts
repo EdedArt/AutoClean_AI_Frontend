@@ -1,8 +1,11 @@
 import { z } from 'zod';
 
-import { apiClient } from './client';
+import { apiClient, ApiError } from './client';
 import { serviceOrderSchema, washPhaseEnum } from './orders';
 import { getToken } from '@/lib/session';
+
+export const MAX_IMAGE_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+export const AI_ANALYZE_TIMEOUT_MS = 90000;
 
 export const aiStatusSchema = z.object({
   mode: z.enum(['auto', 'gemini', 'simulated']),
@@ -30,11 +33,14 @@ export const aiAnalysisResponseSchema = z.object({
     changed: z.boolean(),
     regression: z.boolean(),
     confidence: z.number(),
-    source: z.enum(['rules', 'model']),
+    source: z.string(),
     reason: z.string().nullable().optional(),
   }),
+  observations: z.record(z.string(), z.unknown()).nullable().optional(),
+  phaseSource: z.string().nullable().optional(),
+  phaseReason: z.string().nullable().optional(),
   dirtLevel: z.string().nullable().optional(),
-  notes: z.string().optional(),
+  notes: z.string().nullable().optional(),
   evidenceId: z.number().int().nullable().optional(),
   order: serviceOrderSchema,
 });
@@ -46,9 +52,41 @@ export interface UploadableImageAsset {
   uri: string;
   fileName?: string | null;
   mimeType?: string | null;
+  fileSize?: number | null;
+  base64?: string | null;
+  type?: string | null;
 }
 
-const AI_ANALYZE_TIMEOUT_MS = 65000;
+export function getCompressedAssetSizeBytes(asset: UploadableImageAsset): number | null {
+  if (typeof asset.base64 === 'string' && asset.base64.length > 0) {
+    const cleanedLength = asset.base64.replace(/=+$/, '').length;
+    return Math.floor((cleanedLength * 3) / 4);
+  }
+
+  if (typeof asset.fileSize === 'number' && Number.isFinite(asset.fileSize) && asset.fileSize > 0) {
+    return asset.fileSize;
+  }
+
+  return null;
+}
+
+export function normalizeJpegFileName(rawName: string | null | undefined, orderId: number): string {
+  const fallback = `frame-${orderId}-${Date.now()}.jpg`;
+  if (!rawName || typeof rawName !== 'string') {
+    return fallback;
+  }
+
+  const sanitized = rawName
+    .trim()
+    .replace(/[^a-zA-Z0-9._-]/g, '_')
+    .replace(/\.[^.]+$/, '');
+
+  if (!sanitized) {
+    return fallback;
+  }
+
+  return `${sanitized}.jpg`;
+}
 
 export async function getAiStatus(): Promise<AiStatus> {
   const token = await getToken();
@@ -64,18 +102,32 @@ export async function analyzeOrderImage(
   asset: UploadableImageAsset,
   signal?: AbortSignal,
 ): Promise<AiAnalysisResponse> {
-  const token = await getToken();
+  if (asset.type && asset.type !== 'image' && asset.type !== 'livePhoto') {
+    throw new ApiError(
+      'Formato de archivo no compatible. Selecciona una fotografía en formato JPEG, PNG o WEBP.',
+      'INVALID_FILE_TYPE',
+      400,
+    );
+  }
 
-  const mimeType =
-    asset.mimeType && asset.mimeType.startsWith('image/') ? asset.mimeType : 'image/jpeg';
-  const ext = mimeType === 'image/png' ? 'png' : mimeType === 'image/webp' ? 'webp' : 'jpg';
-  const name = asset.fileName || `frame-${orderId}-${Date.now()}.${ext}`;
+  const sizeBytes = getCompressedAssetSizeBytes(asset);
+  if (sizeBytes !== null && sizeBytes > MAX_IMAGE_FILE_SIZE_BYTES) {
+    throw new ApiError(
+      'La fotografía seleccionada supera el tamaño máximo permitido de 5 MB incluso tras comprimirla.',
+      'FILE_TOO_LARGE',
+      413,
+      { sizeBytes, maxBytes: MAX_IMAGE_FILE_SIZE_BYTES },
+    );
+  }
+
+  const token = await getToken();
+  const name = normalizeJpegFileName(asset.fileName, orderId);
 
   const formData = new FormData();
   formData.append('image', {
     uri: asset.uri,
     name,
-    type: mimeType,
+    type: 'image/jpeg',
   } as unknown as Blob);
 
   const raw = await apiClient.post<unknown>(`/api/orders/${orderId}/analyze`, formData, {
