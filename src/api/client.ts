@@ -70,6 +70,15 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const externalSignal = customOptions.signal;
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', onExternalAbort);
+    }
+  }
 
   let response: Response;
   try {
@@ -83,6 +92,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     clearTimeout(timeoutId);
     const err = error as { name?: string; message?: string };
     if (err?.name === 'AbortError') {
+      if (externalSignal?.aborted) {
+        throw new ApiError('Análisis cancelado por el usuario.', 'REQUEST_CANCELLED');
+      }
       throw new ApiError('Tiempo de espera agotado al conectar con el servidor.', 'NETWORK_ERROR');
     }
     throw new ApiError(
@@ -93,6 +105,9 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     );
   } finally {
     clearTimeout(timeoutId);
+    if (externalSignal) {
+      externalSignal.removeEventListener('abort', onExternalAbort);
+    }
   }
 
   let data: unknown;
@@ -147,6 +162,8 @@ export const apiClient = {
     apiRequest<T>(endpoint, { ...options, method: 'POST', body }),
   put: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiRequest<T>(endpoint, { ...options, method: 'PUT', body }),
+  patch: <T>(endpoint: string, body?: unknown, options?: Omit<RequestOptions, 'method' | 'body'>) =>
+    apiRequest<T>(endpoint, { ...options, method: 'PATCH', body }),
   delete: <T>(endpoint: string, options?: Omit<RequestOptions, 'method' | 'body'>) =>
     apiRequest<T>(endpoint, { ...options, method: 'DELETE' }),
 };
