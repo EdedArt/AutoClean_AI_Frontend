@@ -1,13 +1,14 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   Pressable,
   RefreshControl,
   StyleSheet,
   View,
 } from 'react-native';
-import { Redirect, router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useIsFocused, useLocalSearchParams } from 'expo-router';
 
 import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -35,6 +36,7 @@ import { radius, spacing, WashPhaseCode } from '@/theme/tokens';
 
 export default function OrderDetailScreen() {
   const { state: authState, user } = useAuth();
+  const isFocused = useIsFocused();
   const { id } = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(id) ? id[0] : id;
   const orderId = rawId !== undefined ? Number(rawId) : NaN;
@@ -76,13 +78,28 @@ export default function OrderDetailScreen() {
     }
   }, [refetchOrders, refetchAiStatus]);
 
-  const handleBackToPanel = () => {
+  const handleBackToPanel = useCallback(() => {
     if (router.canGoBack()) {
       router.back();
     } else {
       router.replace('/(dueno)/panel');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleBackToPanel();
+      return true;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused, handleBackToPanel]);
 
   const handleMarkReady = () => {
     if (!order) {
