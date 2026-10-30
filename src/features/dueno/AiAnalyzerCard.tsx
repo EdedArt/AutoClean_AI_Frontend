@@ -284,7 +284,13 @@ export function AiAnalyzerCard({
             setLastResult(response);
             const currentPhaseLabel =
               getPhase(response.phase.current)?.label ?? response.phase.current;
-            onAnnounce?.(`Análisis completado. Fase resultante: ${currentPhaseLabel}`);
+            if (response.phase.changed) {
+              onAnnounce?.(`Análisis completado. Fase avanzada a ${currentPhaseLabel}`);
+            } else {
+              onAnnounce?.(
+                `Análisis completado sin cambio de fase. La orden permanece en ${currentPhaseLabel}`,
+              );
+            }
           },
           onError: (err) => {
             abortControllerRef.current = null;
@@ -476,28 +482,40 @@ export function AiAnalyzerCard({
             styles.feedbackBox,
             {
               backgroundColor: colors.surfaceAlt,
-              borderColor: colors.accent,
+              borderColor: lastResult.phase.changed ? colors.accent : colors.info,
             },
           ]}
           accessible
           accessibilityRole="summary"
         >
-          <Icon name="CircleCheck" size={18} color={colors.accent} style={styles.feedbackIcon} />
+          <Icon
+            name={lastResult.phase.changed ? 'CircleCheck' : 'Info'}
+            size={18}
+            color={lastResult.phase.changed ? colors.accent : colors.info}
+            style={styles.feedbackIcon}
+          />
           <View style={styles.feedbackTextCol}>
             <AppText variant="caption" weight="semiBold">
-              Resultado de IA:{' '}
-              {getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}
+              {lastResult.phase.changed
+                ? `Fase avanzada automáticamente: ${getPhase(lastResult.phase.previous)?.label ?? lastResult.phase.previous} → ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}`
+                : lastResult.phase.regression
+                  ? 'Análisis completado · Sin retroceso de fase'
+                  : `Análisis completado · Fase sin cambios (${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current})`}
             </AppText>
             <AppText variant="caption" muted style={styles.feedbackDetail}>
-              Placa verificada: {lastResult.plate.detected ?? lastResult.plate.expected} (
-              {Math.round(lastResult.plate.confidence * 100)}% conf.) · Fase detectada:{' '}
-              {getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected}
               {lastResult.phase.changed
-                ? ' · Fase avanzada automáticamente.'
+                ? `Placa verificada: ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) · Fase detectada: ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.).`
                 : lastResult.phase.regression
-                  ? ' · Se conservó la fase actual sin retroceder.'
-                  : ' · La orden ya se encontraba en esta fase.'}
+                  ? `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected} y observó una etapa anterior (${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected}, ${Math.round(lastResult.phase.confidence * 100)}% conf.). La orden se mantiene en ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current} porque el lavado no retrocede automáticamente.`
+                  : lastResult.phase.confidence < (aiStatus?.minConfidence ?? 0.6)
+                    ? `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected}, pero la confianza en la fase (${Math.round(lastResult.phase.confidence * 100)}%) fue inferior al umbral mínimo (${Math.round((aiStatus?.minConfidence ?? 0.6) * 100)}%). La orden permanece en ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}.`
+                    : `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) y detectó que el vehículo sigue en la etapa ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.), por lo que no hubo cambio de fase.`}
             </AppText>
+            {lastResult.fallbackUsed ? (
+              <AppText variant="caption" muted style={styles.fallbackNotice}>
+                Nota: se utilizó el proveedor simulado de respaldo ante demora de Gemini.
+              </AppText>
+            ) : null}
           </View>
         </View>
       ) : null}
@@ -595,5 +613,9 @@ const styles = StyleSheet.create({
   feedbackDetail: {
     marginTop: 2,
     lineHeight: 18,
+  },
+  fallbackNotice: {
+    marginTop: 4,
+    fontStyle: 'italic',
   },
 });
