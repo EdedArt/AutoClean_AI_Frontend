@@ -29,6 +29,20 @@ export const plateStatusSchema = z.object({
 
 export type PlateStatus = z.infer<typeof plateStatusSchema>;
 
+export const searchedPlateEntrySchema = z.object({
+  placa: z.string(),
+  lastSearchedAt: z.string(),
+  status: plateStatusSchema.nullable(),
+  message: z.string().optional(),
+});
+
+export const myPlatesResponseSchema = z.object({
+  data: z.array(searchedPlateEntrySchema),
+});
+
+export type SearchedPlateEntry = z.infer<typeof searchedPlateEntrySchema>;
+export type MyPlatesResponse = z.infer<typeof myPlatesResponseSchema>;
+
 /**
  * Consulta el estado actual de lavado de un vehículo por su placa.
  * Utiliza el cliente API centralizado e inyecta el token de sesión si está disponible.
