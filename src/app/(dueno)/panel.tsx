@@ -52,7 +52,7 @@ export default function PanelScreen() {
   }, [refetchOrders, refetchSummary]);
 
   const handleOpenOrder = (orderId: number) => {
-    router.push(`/(dueno)/orden/${orderId}` as Href);
+    router.push(`/orden/${orderId}` as Href);
   };
 
   const hasData = Boolean(data);
