@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, RefreshControl, StyleSheet, View } from 'react-native';
+import { useIsFocused } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { PlateSearchField } from '@/features/buscar/PlateSearchField';
@@ -20,6 +21,7 @@ import { spacing } from '@/theme/tokens';
 export default function BuscarScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
+  const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState('');
   const [searchedPlate, setSearchedPlate] = useState('');
@@ -47,12 +49,29 @@ export default function BuscarScreen() {
     setSearchedPlate(plate);
   };
 
-  const handleNewSearch = () => {
+  const handleNewSearch = useCallback(() => {
     setSearchedPlate('');
     setInputText('');
     setLiveAnnouncement('');
     previousPhaseRef.current = null;
-  };
+  }, []);
+
+  const hasResultOnScreen = Boolean(searchedPlate);
+
+  useEffect(() => {
+    if (!isFocused || !hasResultOnScreen) {
+      return;
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      handleNewSearch();
+      return true;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [isFocused, hasResultOnScreen, handleNewSearch]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
