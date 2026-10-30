@@ -70,12 +70,6 @@ export default function DuenoLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="orden/[id]"
-        options={{
-          href: null,
-        }}
-      />
     </Tabs>
   );
 }
