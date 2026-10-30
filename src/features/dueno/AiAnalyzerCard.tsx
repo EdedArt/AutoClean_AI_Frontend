@@ -148,40 +148,61 @@ export function AiAnalyzerCard({
   const formatAnalysisError = (err: Error): string => {
     if (err instanceof ApiError) {
       if (err.code === 'REQUEST_CANCELLED') {
-        return 'El análisis con IA fue cancelado.';
+        return 'El análisis con IA fue cancelado por el usuario.';
       }
-      if (err.code === 'PLATE_UNREADABLE' || err.status === 422) {
-        return 'No se pudo leer la placa con suficiente confianza en la imagen. Intenta con una foto más clara o usa el control manual.';
+      if (
+        err.code === 'FILE_TOO_LARGE' ||
+        err.code === 'LIMIT_FILE_SIZE' ||
+        err.code === 'PAYLOAD_TOO_LARGE' ||
+        err.status === 413
+      ) {
+        return 'La fotografía supera el tamaño máximo permitido de 5 MB. Selecciona una imagen más liviana.';
+      }
+      if (
+        err.code === 'INVALID_FILE_TYPE' ||
+        err.code === 'FILE_UPLOAD_ERROR' ||
+        err.code === 'FILE_MISSING' ||
+        err.status === 400
+      ) {
+        return 'Formato de imagen no compatible o archivo inválido. Solo se aceptan fotografías JPEG, PNG o WEBP.';
       }
       if (err.code === 'WRONG_VEHICLE') {
         const details = err.details as { detected?: string; expected?: string } | undefined;
         if (details?.detected && details?.expected) {
-          return `La placa detectada en la foto (${details.detected}) no coincide con la de esta orden (${details.expected}).`;
+          return `La placa detectada en la foto (${details.detected}) no coincide con la placa de esta orden (${details.expected}). Verifica que sea el vehículo correcto.`;
         }
         return 'La placa detectada en la fotografía no coincide con el vehículo de esta orden.';
+      }
+      if (err.code === 'PLATE_UNREADABLE' || err.status === 422) {
+        return 'No se pudo leer la placa con suficiente confianza en la imagen. Intenta con una foto más clara donde la placa sea visible o usa el control manual.';
       }
       if (err.code === 'NOT_READY') {
         return 'Primero debes marcar la orden como "Lista para lavar" antes de analizar con IA.';
       }
-      if (err.code === 'FILE_TOO_LARGE' || err.status === 413) {
-        return 'La imagen seleccionada supera el tamaño máximo permitido de 5 MB.';
-      }
-      if (err.code === 'INVALID_FILE_TYPE') {
-        return 'Formato de imagen no compatible. Selecciona una foto JPEG, PNG o WEBP.';
+      if (err.code === 'ALREADY_DELIVERED' || err.code === 'INVALID_STATE') {
+        return 'Esta orden ya alcanzó la fase Listo o ya fue entregada.';
       }
       if (err.code === 'AI_RATE_LIMITED' || err.code === 'RATE_LIMITED' || err.status === 429) {
         return 'Se alcanzó el límite de solicitudes del servicio de IA. Espera un minuto o usa el control manual.';
       }
-      if (err.code === 'AI_UNAVAILABLE' || err.status === 503) {
-        return 'El servicio de visión por IA no está disponible temporalmente. Puedes reintentar o usar el control manual.';
+      if (
+        err.code === 'AI_UNAVAILABLE' ||
+        err.code === 'AI_ERROR' ||
+        err.status === 503 ||
+        err.status === 500
+      ) {
+        return 'El servicio de visión por IA (Gemini) falló o no está disponible temporalmente. Puedes reintentar o usar el control manual.';
+      }
+      if (err.code === 'REQUEST_TIMEOUT') {
+        return 'El análisis superó el tiempo máximo de espera (90 s). Verifica tu conexión Wi-Fi e inténtalo de nuevo, o usa el control manual.';
       }
       if (err.code === 'NETWORK_ERROR') {
-        return 'Tiempo de espera agotado o sin conexión con el servidor. La orden no fue modificada.';
+        return 'Sin conexión con el servidor durante el envío de la foto. Verifica que el backend esté activo y en la misma red Wi-Fi.';
       }
       return err.message;
     }
 
-    return 'Ocurrió un error al analizar la fotografía. La orden permanece sin cambios.';
+    return 'Ocurrió un error inesperado al procesar la respuesta del análisis. La orden permanece sin cambios.';
   };
 
   const handlePickAndAnalyze = async () => {
