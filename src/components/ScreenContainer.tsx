@@ -2,6 +2,7 @@ import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
+  RefreshControlProps,
   ScrollView,
   StyleProp,
   StyleSheet,
@@ -19,6 +20,7 @@ export interface ScreenContainerProps {
   contentContainerStyle?: StyleProp<ViewStyle>;
   edges?: readonly Edge[];
   keyboardOffset?: number;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   children: React.ReactNode;
 }
 
@@ -28,6 +30,7 @@ export function ScreenContainer({
   contentContainerStyle,
   edges = ['top', 'bottom', 'left', 'right'],
   keyboardOffset = Platform.OS === 'ios' ? 0 : 0,
+  refreshControl,
   children,
 }: ScreenContainerProps) {
   const { colors } = useTheme();
@@ -39,6 +42,7 @@ export function ScreenContainer({
       contentContainerStyle={[styles.scrollContent, contentContainerStyle]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
+      refreshControl={refreshControl}
       style={styles.flex}
     >
       {children}
