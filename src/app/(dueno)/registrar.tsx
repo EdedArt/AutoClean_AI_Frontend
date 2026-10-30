@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
-import { router, useIsFocused } from 'expo-router';
+import { type Href, router, useIsFocused } from 'expo-router';
 
 import { ApiError } from '@/api/client';
 import { type ServiceOrder } from '@/api/orders';
@@ -321,7 +321,7 @@ export default function RegistrarScreen() {
               onPress={() => {
                 const targetId = createdOrder.id;
                 setCreatedOrder(null);
-                router.push(`/(dueno)/orden/${targetId}`);
+                router.push(`/(dueno)/orden/${targetId}` as Href);
               }}
             />
           </View>
@@ -369,7 +369,7 @@ export default function RegistrarScreen() {
                   const id = submitBanner.activeOrderId;
                   setSubmitBanner(null);
                   if (id) {
-                    router.push(`/(dueno)/orden/${id}`);
+                    router.push(`/(dueno)/orden/${id}` as Href);
                   }
                 }}
               />

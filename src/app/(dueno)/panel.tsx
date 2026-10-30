@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
+import { type Href, router } from 'expo-router';
 
 import { ActiveOrderCard } from '@/features/dueno/ActiveOrderCard';
 import { BaySummaryBar } from '@/features/dueno/BaySummaryBar';
@@ -52,7 +52,7 @@ export default function PanelScreen() {
   }, [refetchOrders, refetchSummary]);
 
   const handleOpenOrder = (orderId: number) => {
-    router.push(`/(dueno)/orden/${orderId}`);
+    router.push(`/(dueno)/orden/${orderId}` as Href);
   };
 
   const hasData = Boolean(data);

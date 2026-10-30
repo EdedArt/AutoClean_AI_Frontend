@@ -60,7 +60,6 @@ export function AiAnalyzerCard({
 
   const [reduceMotion, setReduceMotion] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [simulatedProgress, setSimulatedProgress] = useState(12);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState<AiAnalysisResponse | null>(null);
 
@@ -100,22 +99,13 @@ export function AiAnalyzerCard({
 
   useEffect(() => {
     if (!isAnalyzing) {
-      setElapsedSeconds(0);
-      setSimulatedProgress(12);
       pulseAnim.stopAnimation();
       pulseAnim.setValue(1);
       return;
     }
 
     const interval = setInterval(() => {
-      setElapsedSeconds((prev) => {
-        const next = prev + 1;
-        // Determinate-feeling curve over ~35 seconds up to 92%
-        const ratio = Math.min(1, next / 35);
-        const eased = 1 - Math.pow(1 - ratio, 1.8);
-        setSimulatedProgress(Math.round(12 + eased * 80));
-        return next;
-      });
+      setElapsedSeconds((prev) => prev + 1);
     }, 1000);
 
     let loop: Animated.CompositeAnimation | null = null;
@@ -214,6 +204,7 @@ export function AiAnalyzerCard({
       const selectedAsset = pickerResult.assets[0];
       const controller = new AbortController();
       abortControllerRef.current = controller;
+      setElapsedSeconds(0);
 
       onAnnounce?.('Iniciando análisis con inteligencia artificial');
 
@@ -260,6 +251,8 @@ export function AiAnalyzerCard({
   const isActionDisabled = isAnalyzing || isAiOffline || isOrderCompleted || isOrderNotReady;
 
   const stageCopy = getStageCopy(elapsedSeconds);
+  const progressRatio = Math.min(1, elapsedSeconds / 35);
+  const simulatedProgress = Math.round(12 + (1 - Math.pow(1 - progressRatio, 1.8)) * 80);
 
   const aiProviderBadgeLabel = aiStatus
     ? aiStatus.effectiveProvider === 'gemini'

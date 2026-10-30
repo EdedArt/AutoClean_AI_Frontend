@@ -31,7 +31,8 @@ export function PackageSelector({
       <AppText
         variant="body"
         weight="medium"
-        style={[styles.label, errorText ? { color: colors.danger } : null]}
+        color={errorText ? 'danger' : 'text'}
+        style={styles.label}
       >
         Paquete de lavado *
       </AppText>
@@ -116,7 +117,8 @@ export function BaySelector({
       <AppText
         variant="body"
         weight="medium"
-        style={[styles.label, errorText ? { color: colors.danger } : null]}
+        color={errorText ? 'danger' : 'text'}
+        style={styles.label}
       >
         Bahía de lavado *
       </AppText>
