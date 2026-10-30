@@ -7,7 +7,7 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 
 import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -16,6 +16,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
+import { useAuth } from '@/features/auth';
 import { PhaseTracker } from '@/features/buscar/PhaseTracker';
 import { ProgressBar } from '@/features/buscar/ProgressBar';
 import { AiAnalyzerCard } from '@/features/dueno/AiAnalyzerCard';
@@ -33,8 +34,11 @@ import { useTheme } from '@/theme';
 import { radius, spacing, WashPhaseCode } from '@/theme/tokens';
 
 export default function OrderDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
-  const orderId = Number(id);
+  const { state: authState, user } = useAuth();
+  const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+  const rawId = Array.isArray(id) ? id[0] : id;
+  const orderId = rawId !== undefined ? Number(rawId) : NaN;
+  const hasValidOrderId = Number.isInteger(orderId) && orderId > 0;
   const { colors, phaseColors } = useTheme();
 
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
@@ -61,7 +65,7 @@ export default function OrderDetailScreen() {
   const { mutate: changePhaseManual } = useUpdateOrderPhase();
   const { mutate: deliverOrderMutation, isPending: isDelivering } = useDeliverOrder();
 
-  const order = orders.find((item) => item.id === orderId);
+  const order = hasValidOrderId ? orders.find((item) => Number(item.id) === orderId) : undefined;
 
   const handleRefresh = useCallback(async () => {
     setIsManualRefreshing(true);
@@ -164,6 +168,18 @@ export default function OrderDetailScreen() {
       ],
     );
   };
+
+  if (authState === 'unauthenticated') {
+    return <Redirect href="/(auth)/login" />;
+  }
+
+  if (authState === 'offline') {
+    return <Redirect href="/" />;
+  }
+
+  if (authState === 'authenticated' && user?.role !== 'OPERARIO') {
+    return <Redirect href="/(cliente)/buscar" />;
+  }
 
   // Delivered Success Screen State
   if (deliveredPlaca) {
@@ -280,7 +296,7 @@ export default function OrderDetailScreen() {
       ) : null}
 
       {/* Order Not Found in Active List */}
-      {data && !order ? (
+      {(!hasValidOrderId || (data && !order)) && !isPending ? (
         <Card variant="outlined" style={styles.stateCard}>
           <Icon name="Car" size={32} color={colors.textMuted} style={styles.stateIcon} />
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
@@ -292,7 +308,7 @@ export default function OrderDetailScreen() {
           <Button
             title="Volver al panel"
             variant="secondary"
-            onPress={() => router.replace('/(dueno)/panel')}
+            onPress={handleBackToPanel}
             style={styles.stateButton}
           />
         </Card>
