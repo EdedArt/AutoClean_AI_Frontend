@@ -55,3 +55,26 @@ export async function getPlateStatus(placa: string): Promise<PlateStatus> {
 
   return plateStatusSchema.parse(raw);
 }
+
+/**
+ * Obtiene el historial reciente de placas consultadas por el cliente autenticado (máximo 10).
+ */
+export async function getMyPlates(): Promise<SearchedPlateEntry[]> {
+  const token = await getToken();
+  const raw = await apiClient.get<unknown>('/api/me/plates', {
+    token: token ?? undefined,
+  });
+
+  const parsed = myPlatesResponseSchema.parse(raw);
+  return parsed.data;
+}
+
+/**
+ * Elimina una placa del historial de búsquedas del cliente autenticado.
+ */
+export async function deleteMyPlate(placa: string): Promise<void> {
+  const token = await getToken();
+  await apiClient.delete<void>(`/api/me/plates/${encodeURIComponent(placa)}`, {
+    token: token ?? undefined,
+  });
+}
