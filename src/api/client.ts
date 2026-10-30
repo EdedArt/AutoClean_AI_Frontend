@@ -95,7 +95,10 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
       if (externalSignal?.aborted) {
         throw new ApiError('Análisis cancelado por el usuario.', 'REQUEST_CANCELLED');
       }
-      throw new ApiError('Tiempo de espera agotado al conectar con el servidor.', 'NETWORK_ERROR');
+      throw new ApiError(
+        'El servidor tardó demasiado en responder (tiempo de espera agotado).',
+        'REQUEST_TIMEOUT',
+      );
     }
     throw new ApiError(
       'Sin conexión con el servidor. Verifica que el backend esté activo y alcanzable.',
