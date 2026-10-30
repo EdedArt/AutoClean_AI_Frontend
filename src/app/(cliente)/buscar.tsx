@@ -1,8 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { PlateSearchField } from '@/features/buscar/PlateSearchField';
+import { RecentSearches } from '@/features/buscar/RecentSearches';
 import { StatusCard } from '@/features/buscar/StatusCard';
+import { MY_PLATES_QUERY_KEY } from '@/features/buscar/useMyPlates';
 import { usePlateStatus } from '@/features/buscar/usePlateStatus';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -17,9 +20,11 @@ import { spacing } from '@/theme/tokens';
 export default function BuscarScreen() {
   const { user } = useAuth();
   const { colors } = useTheme();
+  const queryClient = useQueryClient();
   const [inputText, setInputText] = useState('');
   const [searchedPlate, setSearchedPlate] = useState('');
   const [liveAnnouncement, setLiveAnnouncement] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const previousPhaseRef = useRef<string | null>(null);
 
   const { data, isPending, isFetching, isNotFound, isRateLimited, isNetworkError, refetch } =
@@ -38,6 +43,7 @@ export default function BuscarScreen() {
   const greetingName = user?.nombre ? user.nombre.split(' ')[0] : 'Cliente';
 
   const handleSearch = (plate: string) => {
+    setInputText(plate);
     setSearchedPlate(plate);
   };
 
@@ -48,8 +54,40 @@ export default function BuscarScreen() {
     previousPhaseRef.current = null;
   };
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      if (user?.role === 'CLIENTE') {
+        await queryClient.refetchQueries({ queryKey: MY_PLATES_QUERY_KEY });
+      }
+      if (searchedPlate) {
+        await refetch();
+      }
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [user?.role, queryClient, searchedPlate, refetch]);
+
+  const isStatusCardVisible = Boolean(searchedPlate && data && !isNotFound);
+  const isSearchLoading = Boolean(
+    searchedPlate && isPending && !data && !isNotFound && !isNetworkError && !isRateLimited,
+  );
+  const showRecentSearches = user?.role === 'CLIENTE' && !isStatusCardVisible && !isSearchLoading;
+
   return (
-    <ScreenContainer scroll contentContainerStyle={styles.container}>
+    <ScreenContainer
+      scroll
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl
+          refreshing={isRefreshing}
+          onRefresh={handleRefresh}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+          progressBackgroundColor={colors.surface}
+        />
+      }
+    >
       {/* Accessibility live region for screen reader announcements */}
       <View
         accessible
@@ -77,17 +115,8 @@ export default function BuscarScreen() {
         loading={isFetching && !data}
       />
 
-      {/* 1. Initial State (No plate searched) */}
-      {!searchedPlate && (
-        <View style={styles.initialContainer}>
-          <AppText variant="caption" muted style={styles.initialHelperText}>
-            Ingresa la placa de tu vehículo para consultar su avance en el lavado.
-          </AppText>
-        </View>
-      )}
-
-      {/* 2. Loading State (First fetch) */}
-      {searchedPlate && isPending && !data && !isNotFound && !isNetworkError && !isRateLimited && (
+      {/* 1. Loading State (First fetch) */}
+      {isSearchLoading && (
         <Card variant="outlined" style={styles.stateCard}>
           <ActivityIndicator size="large" color={colors.primary} style={styles.stateIcon} />
           <AppText variant="body" muted style={styles.loadingMessage}>
@@ -96,7 +125,7 @@ export default function BuscarScreen() {
         </Card>
       )}
 
-      {/* 3. 404 Not Found State */}
+      {/* 2. 404 Not Found State */}
       {searchedPlate && isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
           <Icon name="Search" size={36} color={colors.textMuted} style={styles.stateIcon} />
@@ -113,7 +142,7 @@ export default function BuscarScreen() {
         </Card>
       )}
 
-      {/* 4. Network Error WITHOUT data */}
+      {/* 3. Network Error WITHOUT data */}
       {searchedPlate && isNetworkError && !data && !isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
           <Icon name="WifiOff" size={36} color={colors.danger} style={styles.stateIcon} />
@@ -134,7 +163,7 @@ export default function BuscarScreen() {
         </Card>
       )}
 
-      {/* 5. 429 Rate Limited WITHOUT data */}
+      {/* 4. 429 Rate Limited WITHOUT data */}
       {searchedPlate && isRateLimited && !data && !isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
           <Icon name="Clock" size={36} color={colors.warning} style={styles.stateIcon} />
@@ -153,8 +182,13 @@ export default function BuscarScreen() {
         </Card>
       )}
 
+      {/* 5. Recent Searches Section (Hidden while StatusCard is displayed) */}
+      {showRecentSearches && (
+        <RecentSearches onSelectPlate={handleSearch} onAnnounce={setLiveAnnouncement} />
+      )}
+
       {/* 6. Success State (Active Order Data) */}
-      {searchedPlate && data && !isNotFound && (
+      {isStatusCardVisible && data && (
         <View style={styles.successContainer}>
           {/* Offline Banner when network fails but previous data is retained */}
           {isNetworkError && (
@@ -207,20 +241,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
   },
-  initialContainer: {
-    paddingVertical: spacing[24],
-    alignItems: 'center',
-  },
-  initialHelperText: {
-    textAlign: 'center',
-    fontSize: 13,
-    lineHeight: 18,
-  },
   stateCard: {
     alignItems: 'center',
     paddingVertical: spacing[32],
     paddingHorizontal: spacing[16],
     marginTop: spacing[8],
+    marginBottom: spacing[16],
   },
   stateIcon: {
     marginBottom: spacing[16],

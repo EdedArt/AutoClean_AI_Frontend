@@ -4,6 +4,7 @@ export interface ColorPalette {
   background: string;
   surface: string;
   surfaceAlt: string;
+  surfaceDimmed: string;
   text: string;
   textMuted: string;
   border: string;
@@ -42,6 +43,7 @@ export const lightPalette: ColorPalette = {
   background: '#F6F8FB',
   surface: '#FFFFFF',
   surfaceAlt: '#EEF2F7',
+  surfaceDimmed: '#F1F5F9',
   text: '#0F172A',
   textMuted: '#475569',
   border: '#E2E8F0',
@@ -61,6 +63,7 @@ export const darkPalette: ColorPalette = {
   background: '#0B1220',
   surface: '#111A2B',
   surfaceAlt: '#17233A',
+  surfaceDimmed: '#131D31',
   text: '#E5EEF8',
   textMuted: '#9FB2C8',
   border: '#24324A',
