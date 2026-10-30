@@ -3,7 +3,12 @@ import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-nat
 import * as ImagePicker from 'expo-image-picker';
 
 import { useAnalyzeOrderImage } from './useOrderMutations';
-import { type AiAnalysisResponse, type AiStatus } from '@/api/ai';
+import {
+  type AiAnalysisResponse,
+  type AiStatus,
+  getCompressedAssetSizeBytes,
+  MAX_IMAGE_FILE_SIZE_BYTES,
+} from '@/api/ai';
 import { ApiError } from '@/api/client';
 import { type ServiceOrder } from '@/api/orders';
 import { AppText } from '@/components/AppText';
@@ -194,7 +199,10 @@ export function AiAnalyzerCard({
       const pickerResult = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: false,
-        quality: 0.85,
+        quality: 0.4,
+        base64: true,
+        preferredAssetRepresentationMode:
+          ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
 
       if (pickerResult.canceled || !pickerResult.assets || pickerResult.assets.length === 0) {
@@ -202,6 +210,34 @@ export function AiAnalyzerCard({
       }
 
       const selectedAsset = pickerResult.assets[0];
+      setLastResult(null);
+
+      if (
+        selectedAsset.type &&
+        selectedAsset.type !== 'image' &&
+        selectedAsset.type !== 'livePhoto'
+      ) {
+        const formatMsg =
+          'Formato de archivo no compatible. Selecciona una fotografía en formato JPEG, PNG o WEBP.';
+        setErrorMessage(formatMsg);
+        onAnnounce?.(formatMsg);
+        return;
+      }
+
+      const compressedSizeBytes = getCompressedAssetSizeBytes({
+        uri: selectedAsset.uri,
+        fileSize: selectedAsset.fileSize,
+        base64: selectedAsset.base64,
+      });
+
+      if (compressedSizeBytes !== null && compressedSizeBytes > MAX_IMAGE_FILE_SIZE_BYTES) {
+        const sizeMb = (compressedSizeBytes / (1024 * 1024)).toFixed(1);
+        const oversizedMsg = `La foto seleccionada es demasiado grande (${sizeMb} MB tras comprimirla) y supera el límite máximo de 5 MB. Selecciona otra fotografía más liviana.`;
+        setErrorMessage(oversizedMsg);
+        onAnnounce?.(oversizedMsg);
+        return;
+      }
+
       const controller = new AbortController();
       abortControllerRef.current = controller;
       setElapsedSeconds(0);
@@ -215,6 +251,9 @@ export function AiAnalyzerCard({
             uri: selectedAsset.uri,
             fileName: selectedAsset.fileName,
             mimeType: selectedAsset.mimeType,
+            fileSize: selectedAsset.fileSize,
+            base64: selectedAsset.base64,
+            type: selectedAsset.type,
           },
           signal: controller.signal,
         },
