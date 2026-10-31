@@ -32,9 +32,9 @@ export default function StyleGuideScreen() {
       <View style={styles.header}>
         <Button
           title="Volver"
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          leftIcon="ChevronRight"
+          leftIcon="ArrowLeft"
           onPress={() => router.back()}
           style={styles.backButton}
         />
@@ -100,6 +100,12 @@ export default function StyleGuideScreen() {
             title="Botón Secundario"
             variant="secondary"
             leftIcon="RefreshCw"
+            onPress={() => {}}
+          />
+          <Button
+            title="Botón Destructivo"
+            variant="destructive"
+            leftIcon="Trash2"
             onPress={() => {}}
           />
           <Button title="Botón Ghost" variant="ghost" rightIcon="ChevronRight" onPress={() => {}} />
@@ -203,8 +209,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing[16],
   },
   backButton: {
-    minWidth: 80,
-    transform: [{ scaleX: -1 }],
+    minWidth: 96,
   },
   pageTitle: {
     marginBottom: 6,
