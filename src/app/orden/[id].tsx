@@ -32,7 +32,7 @@ import {
 import { getPhase } from '@/lib/phases';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
-import { radius, spacing, WashPhaseCode } from '@/theme/tokens';
+import { radius, spacing, WashPhaseCode, withAlpha } from '@/theme/tokens';
 
 export default function OrderDetailScreen() {
   const { state: authState, user } = useAuth();
@@ -41,7 +41,7 @@ export default function OrderDetailScreen() {
   const rawId = Array.isArray(id) ? id[0] : id;
   const orderId = rawId !== undefined ? Number(rawId) : NaN;
   const hasValidOrderId = Number.isInteger(orderId) && orderId > 0;
-  const { colors, phaseColors } = useTheme();
+  const { colors, phaseColors, isDark } = useTheme();
 
   const [isAiAnalyzing, setIsAiAnalyzing] = useState(false);
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -203,7 +203,12 @@ export default function OrderDetailScreen() {
     return (
       <ScreenContainer contentContainerStyle={styles.centeredContainer}>
         <Card variant="elevated" style={styles.stateCard} accessibilityRole="alert">
-          <View style={[styles.successCircle, { backgroundColor: colors.surfaceAlt }]}>
+          <View
+            style={[
+              styles.successCircle,
+              { backgroundColor: withAlpha(colors.accent, isDark ? 0.18 : 0.12) },
+            ]}
+          >
             <Icon name="CircleCheck" size={36} color={colors.accent} />
           </View>
           <AppText variant="title" weight="bold" style={styles.stateTitle}>
@@ -255,10 +260,17 @@ export default function OrderDetailScreen() {
           accessible
           accessibilityRole="button"
           accessibilityLabel="Volver al panel de órdenes"
-          style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}
+          style={({ pressed }) => [
+            styles.backButton,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+            pressed && styles.pressed,
+          ]}
         >
-          <Icon name="ArrowLeft" size={20} color={colors.text} style={styles.backIcon} />
-          <AppText variant="body" weight="medium">
+          <Icon name="ArrowLeft" size={18} color={colors.text} style={styles.backIcon} />
+          <AppText variant="body" weight="semiBold">
             Panel
           </AppText>
         </Pressable>
@@ -269,7 +281,10 @@ export default function OrderDetailScreen() {
         <View
           style={[
             styles.offlineBanner,
-            { backgroundColor: colors.surfaceAlt, borderColor: colors.warning },
+            {
+              backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+              borderColor: withAlpha(colors.warning, isDark ? 0.4 : 0.3),
+            },
           ]}
           accessible
           accessibilityRole="alert"
@@ -294,7 +309,14 @@ export default function OrderDetailScreen() {
       {/* Error State without data */}
       {isError && !data ? (
         <Card variant="outlined" style={styles.stateCard}>
-          <Icon name="WifiOff" size={32} color={colors.danger} style={styles.stateIcon} />
+          <View
+            style={[
+              styles.stateIconCircle,
+              { backgroundColor: withAlpha(colors.danger, isDark ? 0.18 : 0.1) },
+            ]}
+          >
+            <Icon name="WifiOff" size={26} color={colors.danger} />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             No se pudo cargar la orden
           </AppText>
@@ -315,7 +337,9 @@ export default function OrderDetailScreen() {
       {/* Order Not Found in Active List */}
       {(!hasValidOrderId || (data && !order)) && !isPending ? (
         <Card variant="outlined" style={styles.stateCard}>
-          <Icon name="Car" size={32} color={colors.textMuted} style={styles.stateIcon} />
+          <View style={[styles.stateIconCircle, { backgroundColor: colors.surfaceAlt }]}>
+            <Icon name="Car" size={26} color={colors.textMuted} />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             Orden no disponible en lavado activo
           </AppText>
@@ -334,11 +358,11 @@ export default function OrderDetailScreen() {
       {/* Active Order Content */}
       {order ? (
         <View>
-          {/* Header Summary Card */}
+          {/* 1. Vehicle Identity + Unified Coherent Status Block */}
           <Card variant="elevated" style={styles.headerCard}>
             <View style={styles.headerTopRow}>
               <View style={styles.plateBlock}>
-                <AppText variant="title" weight="bold" style={styles.plateText}>
+                <AppText variant="display" weight="bold" style={styles.plateText}>
                   {order.vehicle?.placa
                     ? formatPlateInput(order.vehicle.placa)
                     : `Orden #${order.id}`}
@@ -358,11 +382,16 @@ export default function OrderDetailScreen() {
               <Badge variant="phase" phase={order.faseActual} />
             </View>
 
-            {/* Bay and Package Metadata (only when returned by backend) */}
+            {/* Bay and Package Metadata Pills */}
             {order.bay || order.package || order.vehicle?.nivelSuciedad ? (
-              <View style={[styles.metaStrip, { borderTopColor: colors.border }]}>
+              <View style={styles.metaStrip}>
                 {order.bay ? (
-                  <View style={styles.metaPill}>
+                  <View
+                    style={[
+                      styles.metaPill,
+                      { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                    ]}
+                  >
                     <AppText variant="caption" muted>
                       Bahía:
                     </AppText>
@@ -373,7 +402,12 @@ export default function OrderDetailScreen() {
                 ) : null}
 
                 {order.package ? (
-                  <View style={styles.metaPill}>
+                  <View
+                    style={[
+                      styles.metaPill,
+                      { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                    ]}
+                  >
                     <AppText variant="caption" muted>
                       Paquete:
                     </AppText>
@@ -384,7 +418,12 @@ export default function OrderDetailScreen() {
                 ) : null}
 
                 {order.vehicle?.nivelSuciedad ? (
-                  <View style={styles.metaPill}>
+                  <View
+                    style={[
+                      styles.metaPill,
+                      { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+                    ]}
+                  >
                     <AppText variant="caption" muted>
                       Suciedad:
                     </AppText>
@@ -396,38 +435,58 @@ export default function OrderDetailScreen() {
               </View>
             ) : null}
 
-            {/* Progress & Verbatim ETA */}
-            <View style={styles.progressHeaderRow}>
-              <AppText
-                variant="subtitle"
-                weight="bold"
-                style={{ color: phaseColors[order.faseActual].main }}
-              >
-                {order.porcentajeProgreso}%
-              </AppText>
+            {/* Unified Coherent Status Block: Progress + Verbatim ETA + PhaseTracker */}
+            <View
+              style={[
+                styles.statusBlock,
+                { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+              ]}
+            >
+              <View style={styles.progressHeaderRow}>
+                <AppText
+                  variant="subtitle"
+                  weight="bold"
+                  style={{ color: phaseColors[order.faseActual].main }}
+                >
+                  {order.porcentajeProgreso}%
+                </AppText>
 
-              {order.etaLabel ? (
-                <View style={styles.etaRow}>
-                  <Icon name="Clock" size={14} color={colors.textMuted} style={styles.etaIcon} />
-                  <AppText variant="caption" muted>
-                    {order.etaLabel}
-                  </AppText>
-                </View>
-              ) : null}
+                {order.etaLabel ? (
+                  <View
+                    style={[
+                      styles.etaRow,
+                      { backgroundColor: colors.surface, borderColor: colors.border },
+                    ]}
+                  >
+                    <Icon name="Clock" size={14} color={colors.textMuted} style={styles.etaIcon} />
+                    <AppText variant="caption" muted>
+                      {order.etaLabel}
+                    </AppText>
+                  </View>
+                ) : null}
+              </View>
+
+              <ProgressBar
+                progress={order.porcentajeProgreso}
+                color={phaseColors[order.faseActual].main}
+                height={8}
+                style={styles.progressBar}
+              />
+
+              <PhaseTracker currentPhase={order.faseActual} />
             </View>
-
-            <ProgressBar
-              progress={order.porcentajeProgreso}
-              color={phaseColors[order.faseActual].main}
-              height={8}
-              style={styles.progressBar}
-            />
-
-            <PhaseTracker currentPhase={order.faseActual} />
 
             {/* "Marcar listo para lavar" when listoParaLavar is false */}
             {!order.listoParaLavar ? (
-              <View style={[styles.readySection, { borderTopColor: colors.border }]}>
+              <View
+                style={[
+                  styles.readySection,
+                  {
+                    backgroundColor: withAlpha(colors.primary, isDark ? 0.14 : 0.06),
+                    borderColor: withAlpha(colors.primary, isDark ? 0.35 : 0.22),
+                  },
+                ]}
+              >
                 <AppText variant="caption" muted style={styles.readyHint}>
                   El vehículo está en espera. Márcalo como listo para iniciar el lavado y habilitar
                   el análisis con IA.
@@ -435,6 +494,7 @@ export default function OrderDetailScreen() {
                 <Button
                   title="Marcar listo para lavar"
                   leftIcon="Check"
+                  fullWidth
                   onPress={handleMarkReady}
                   loading={isMarkingReady}
                   disabled={isMarkingReady || isAiAnalyzing}
@@ -448,7 +508,10 @@ export default function OrderDetailScreen() {
             <View
               style={[
                 styles.errorBanner,
-                { backgroundColor: colors.surfaceAlt, borderColor: colors.danger },
+                {
+                  backgroundColor: withAlpha(colors.danger, isDark ? 0.16 : 0.08),
+                  borderColor: withAlpha(colors.danger, isDark ? 0.4 : 0.3),
+                },
               ]}
               accessible
               accessibilityRole="alert"
@@ -460,7 +523,7 @@ export default function OrderDetailScreen() {
             </View>
           ) : null}
 
-          {/* PRIMARY ACTION: Analizar con IA */}
+          {/* 2. PRIMARY ACTION: Analizar con IA */}
           <AiAnalyzerCard
             order={order}
             aiStatus={aiStatus}
@@ -469,7 +532,7 @@ export default function OrderDetailScreen() {
             onAnnounce={setLiveAnnouncement}
           />
 
-          {/* SECONDARY FALLBACK: Control manual (collapsed by default) */}
+          {/* 3. SECONDARY FALLBACK: Control manual (collapsed by default) */}
           <ManualPhaseControl
             currentPhase={order.faseActual}
             disabled={isAiAnalyzing || isDelivering || isMarkingReady}
@@ -477,22 +540,56 @@ export default function OrderDetailScreen() {
             onSelectPhase={handleManualPhaseChange}
           />
 
-          {/* DELIVER ACTION: Enabled ONLY when phase is LISTO */}
-          <Card variant="outlined" style={styles.deliverCard}>
+          {/* 4. TERMINAL DELIVER ACTION: Enabled ONLY when phase is LISTO */}
+          <Card
+            variant="outlined"
+            style={[
+              styles.deliverCard,
+              order.faseActual === 'LISTO'
+                ? {
+                    borderColor: withAlpha(colors.accent, isDark ? 0.5 : 0.4),
+                    backgroundColor: withAlpha(colors.accent, isDark ? 0.08 : 0.04),
+                  }
+                : {
+                    backgroundColor: colors.surface,
+                    borderColor: colors.border,
+                  },
+            ]}
+          >
             <View style={styles.deliverHeader}>
-              <AppText variant="subtitle" weight="semiBold">
-                Entrega del vehículo
-              </AppText>
-              <AppText variant="caption" muted style={styles.deliverSubtitle}>
-                {order.faseActual === 'LISTO'
-                  ? 'El lavado ha finalizado (100%). Ya puedes entregar el vehículo al cliente.'
-                  : 'La entrega se habilitará únicamente cuando el vehículo alcance la fase Listo.'}
-              </AppText>
+              <View
+                style={[
+                  styles.deliverIconCircle,
+                  {
+                    backgroundColor:
+                      order.faseActual === 'LISTO'
+                        ? withAlpha(colors.accent, isDark ? 0.2 : 0.12)
+                        : colors.surfaceAlt,
+                  },
+                ]}
+              >
+                <Icon
+                  name="CircleCheck"
+                  size={18}
+                  color={order.faseActual === 'LISTO' ? colors.accent : colors.textMuted}
+                />
+              </View>
+              <View style={styles.deliverTextCol}>
+                <AppText variant="subtitle" weight="semiBold">
+                  Entrega del vehículo
+                </AppText>
+                <AppText variant="caption" muted style={styles.deliverSubtitle}>
+                  {order.faseActual === 'LISTO'
+                    ? 'El lavado ha finalizado (100%). Ya puedes entregar el vehículo al cliente.'
+                    : 'La entrega se habilitará únicamente cuando el vehículo alcance la fase Listo.'}
+                </AppText>
+              </View>
             </View>
             <Button
               title="Entregar"
               size="lg"
               leftIcon="CircleCheck"
+              fullWidth
               disabled={order.faseActual !== 'LISTO' || isDelivering || isAiAnalyzing}
               loading={isDelivering}
               onPress={handleConfirmDeliver}
@@ -507,24 +604,27 @@ export default function OrderDetailScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing[16],
+    paddingTop: spacing[12],
     paddingBottom: spacing[32],
   },
   centeredContainer: {
     justifyContent: 'center',
-    padding: spacing[16],
+    paddingVertical: spacing[24],
   },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing[12],
+    marginBottom: spacing[16],
   },
   backButton: {
     minHeight: 44,
     minWidth: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: spacing[12],
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[8],
+    borderRadius: radius.pill,
+    borderWidth: 1,
   },
   backIcon: {
     marginRight: 6,
@@ -538,7 +638,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing[8],
     paddingHorizontal: spacing[12],
-    borderRadius: radius[8],
+    borderRadius: radius[12],
     borderWidth: 1,
     marginBottom: spacing[12],
   },
@@ -551,6 +651,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[16],
   },
   stateIcon: {
+    marginBottom: spacing[12],
+  },
+  stateIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing[12],
   },
   stateTitle: {
@@ -587,8 +695,9 @@ const styles = StyleSheet.create({
     marginRight: spacing[8],
   },
   plateText: {
-    fontSize: 26,
-    letterSpacing: 1,
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: 0.8,
   },
   vehicleSubtitle: {
     marginTop: 2,
@@ -597,17 +706,24 @@ const styles = StyleSheet.create({
   metaStrip: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing[12],
-    borderTopWidth: 1,
-    paddingTop: spacing[12],
-    marginBottom: spacing[12],
+    gap: spacing[8],
+    marginBottom: spacing[16],
   },
   metaPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing[12],
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
   },
   metaValue: {
     marginLeft: 4,
+  },
+  statusBlock: {
+    padding: spacing[12],
+    borderRadius: radius[12],
+    borderWidth: 1,
   },
   progressHeaderRow: {
     flexDirection: 'row',
@@ -618,6 +734,10 @@ const styles = StyleSheet.create({
   etaRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing[8],
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
   },
   etaIcon: {
     marginRight: 4,
@@ -626,9 +746,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing[16],
   },
   readySection: {
-    borderTopWidth: 1,
     marginTop: spacing[16],
-    paddingTop: spacing[12],
+    padding: spacing[12],
+    borderRadius: radius[12],
+    borderWidth: 1,
   },
   readyHint: {
     marginBottom: spacing[12],
@@ -650,7 +771,20 @@ const styles = StyleSheet.create({
     marginBottom: spacing[16],
   },
   deliverHeader: {
-    marginBottom: spacing[12],
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: spacing[16],
+  },
+  deliverIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: radius[12],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing[12],
+  },
+  deliverTextCol: {
+    flex: 1,
   },
   deliverSubtitle: {
     marginTop: 4,
