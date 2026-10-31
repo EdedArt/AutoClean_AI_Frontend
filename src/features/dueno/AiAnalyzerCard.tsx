@@ -3,12 +3,7 @@ import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-nat
 import * as ImagePicker from 'expo-image-picker';
 
 import { useAnalyzeOrderImage } from './useOrderMutations';
-import {
-  type AiAnalysisResponse,
-  type AiStatus,
-  getCompressedAssetSizeBytes,
-  MAX_IMAGE_FILE_SIZE_BYTES,
-} from '@/api/ai';
+import { type AiAnalysisResponse, type AiStatus } from '@/api/ai';
 import { ApiError } from '@/api/client';
 import { type ServiceOrder } from '@/api/orders';
 import { AppText } from '@/components/AppText';
@@ -221,7 +216,6 @@ export function AiAnalyzerCard({
         mediaTypes: ['images'],
         allowsEditing: false,
         quality: 0.4,
-        base64: true,
         preferredAssetRepresentationMode:
           ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
@@ -245,20 +239,6 @@ export function AiAnalyzerCard({
         return;
       }
 
-      const compressedSizeBytes = getCompressedAssetSizeBytes({
-        uri: selectedAsset.uri,
-        fileSize: selectedAsset.fileSize,
-        base64: selectedAsset.base64,
-      });
-
-      if (compressedSizeBytes !== null && compressedSizeBytes > MAX_IMAGE_FILE_SIZE_BYTES) {
-        const sizeMb = (compressedSizeBytes / (1024 * 1024)).toFixed(1);
-        const oversizedMsg = `La foto seleccionada es demasiado grande (${sizeMb} MB tras comprimirla) y supera el límite máximo de 5 MB. Selecciona otra fotografía más liviana.`;
-        setErrorMessage(oversizedMsg);
-        onAnnounce?.(oversizedMsg);
-        return;
-      }
-
       const controller = new AbortController();
       abortControllerRef.current = controller;
       setElapsedSeconds(0);
@@ -273,7 +253,6 @@ export function AiAnalyzerCard({
             fileName: selectedAsset.fileName,
             mimeType: selectedAsset.mimeType,
             fileSize: selectedAsset.fileSize,
-            base64: selectedAsset.base64,
             type: selectedAsset.type,
           },
           signal: controller.signal,
