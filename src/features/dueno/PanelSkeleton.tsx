@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
+import { useIsFocused } from 'expo-router';
 
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -10,6 +11,7 @@ export interface PanelSkeletonProps {
 
 export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
   const { colors } = useTheme();
+  const isFocused = useIsFocused();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [pulseAnim] = useState(() => new Animated.Value(0.6));
 
@@ -35,7 +37,7 @@ export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
   }, []);
 
   useEffect(() => {
-    if (reduceMotion) {
+    if (reduceMotion || !isFocused) {
       pulseAnim.stopAnimation();
       pulseAnim.setValue(1);
       return;
@@ -63,7 +65,7 @@ export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
     return () => {
       loop.stop();
     };
-  }, [pulseAnim, reduceMotion]);
+  }, [pulseAnim, reduceMotion, isFocused]);
 
   const items = Array.from({ length: rows }, (_, i) => i);
 
@@ -92,9 +94,7 @@ export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
             </View>
             <View style={[styles.badgePlaceholder, { backgroundColor: colors.surfaceAlt }]} />
           </View>
-          <View
-            style={[styles.progressPlaceholder, { backgroundColor: colors.disabledBackground }]}
-          />
+          <View style={[styles.progressPlaceholder, { backgroundColor: colors.surfaceAlt }]} />
           <View style={styles.bottomRow}>
             <View style={[styles.percentPlaceholder, { backgroundColor: colors.surfaceAlt }]} />
             <View style={[styles.etaPlaceholder, { backgroundColor: colors.surfaceAlt }]} />
