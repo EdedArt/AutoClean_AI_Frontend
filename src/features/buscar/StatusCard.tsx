@@ -11,7 +11,7 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
-import { spacing } from '@/theme/tokens';
+import { radius, spacing } from '@/theme/tokens';
 
 export interface StatusCardProps {
   status: PlateStatus;
@@ -38,7 +38,7 @@ export function StatusCard({ status }: StatusCardProps) {
       {/* Header: Plate + Phase Badge */}
       <View style={styles.headerRow}>
         <View style={styles.plateContainer}>
-          <AppText variant="title" weight="bold" style={styles.plateText}>
+          <AppText variant="display" weight="bold" style={styles.plateText}>
             {status.placa}
           </AppText>
           <AppText variant="body" muted style={styles.vehicleSubtitle}>
@@ -54,32 +54,42 @@ export function StatusCard({ status }: StatusCardProps) {
         <CarIllustration phase={status.fase} />
       </View>
 
-      {/* Progress & ETA Row */}
-      <View style={styles.progressHeaderRow}>
-        <View style={styles.percentBlock}>
-          <AppText variant="subtitle" weight="bold" style={{ color: currentPhaseColor }}>
-            {status.porcentajeProgreso}%
-          </AppText>
-        </View>
-
-        {status.etaLabel ? (
-          <View style={styles.etaBlock}>
-            <Icon name="Clock" size={15} color={colors.textMuted} style={styles.etaIcon} />
-            <AppText variant="caption" muted style={styles.etaText}>
-              {status.etaLabel}
+      {/* Unified Status Block: Progress + ETA + Stepper */}
+      <View
+        style={[
+          styles.statusBlock,
+          { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+        ]}
+      >
+        <View style={styles.progressHeaderRow}>
+          <View style={styles.percentBlock}>
+            <AppText variant="subtitle" weight="bold" style={{ color: currentPhaseColor }}>
+              {status.porcentajeProgreso}%
             </AppText>
           </View>
-        ) : null}
-      </View>
 
-      {/* Progress Bar */}
-      <View style={styles.progressBarWrapper}>
-        <ProgressBar progress={status.porcentajeProgreso} color={currentPhaseColor} height={8} />
-      </View>
+          {status.etaLabel ? (
+            <View
+              style={[
+                styles.etaBlock,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <Icon name="Clock" size={14} color={colors.textMuted} style={styles.etaIcon} />
+              <AppText variant="caption" muted style={styles.etaText}>
+                {status.etaLabel}
+              </AppText>
+            </View>
+          ) : null}
+        </View>
 
-      {/* Stepper / Phase Tracker */}
-      <View style={styles.trackerWrapper}>
-        <PhaseTracker currentPhase={status.fase} />
+        <View style={styles.progressBarWrapper}>
+          <ProgressBar progress={status.porcentajeProgreso} color={currentPhaseColor} height={8} />
+        </View>
+
+        <View style={styles.trackerWrapper}>
+          <PhaseTracker currentPhase={status.fase} />
+        </View>
       </View>
     </Card>
   );
@@ -102,8 +112,9 @@ const styles = StyleSheet.create({
     marginRight: spacing[12],
   },
   plateText: {
-    fontSize: 26,
-    letterSpacing: 1,
+    fontSize: 28,
+    lineHeight: 34,
+    letterSpacing: 0.8,
   },
   vehicleSubtitle: {
     marginTop: 2,
@@ -113,6 +124,11 @@ const styles = StyleSheet.create({
     marginVertical: spacing[8],
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  statusBlock: {
+    padding: spacing[12],
+    borderRadius: radius[12],
+    borderWidth: 1,
   },
   progressHeaderRow: {
     flexDirection: 'row',
@@ -128,6 +144,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: '65%',
+    paddingHorizontal: spacing[8],
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
   },
   etaIcon: {
     marginRight: 4,
