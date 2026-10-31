@@ -50,7 +50,14 @@ function RootNavigator() {
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
       }}
-    />
+    >
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(cliente)" />
+      <Stack.Screen name="(dueno)" />
+      <Stack.Screen name="orden/[id]" />
+      <Stack.Screen name="style-guide" />
+    </Stack>
   );
 }
 
