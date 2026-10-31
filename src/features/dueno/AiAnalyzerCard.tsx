@@ -145,6 +145,13 @@ export function AiAnalyzerCard({
       if (err.code === 'REQUEST_CANCELLED') {
         return 'El análisis con IA fue cancelado por el usuario.';
       }
+      if (err.code === 'FILE_READ_ERROR' || err.code === 'CLIENT_REQUEST_ERROR') {
+        const detail =
+          typeof err.details === 'string' && err.details.trim().length > 0
+            ? ` (${err.details.trim()})`
+            : '';
+        return `No se pudo leer o preparar la fotografía seleccionada en el dispositivo${detail}. Intenta eligiendo otra imagen de la galería.`;
+      }
       if (
         err.code === 'FILE_TOO_LARGE' ||
         err.code === 'LIMIT_FILE_SIZE' ||
