@@ -138,7 +138,7 @@ export function BaySelector({
             backgroundColor = colors.disabledBackground;
             borderColor = colors.disabledBorder;
             textColor = colors.disabledText;
-            statusColor = colors.danger;
+            statusColor = colors.disabledText;
           } else if (isSelected) {
             backgroundColor = withAlpha(colors.primary, isDark ? 0.18 : 0.1);
             borderColor = colors.primary;
@@ -165,7 +165,7 @@ export function BaySelector({
                   backgroundColor,
                   borderColor,
                   borderWidth: isSelected ? 1.5 : 1,
-                  opacity: isOccupied ? 0.65 : pressed && !disabled ? 0.85 : 1,
+                  opacity: !isOccupied && pressed && !disabled ? 0.85 : 1,
                 },
               ]}
             >
@@ -266,8 +266,10 @@ const styles = StyleSheet.create({
     gap: spacing[8],
   },
   packageOption: {
+    minHeight: 56,
     borderRadius: radius[12],
     padding: spacing[12],
+    justifyContent: 'center',
   },
   packageHeader: {
     flexDirection: 'row',
@@ -289,10 +291,12 @@ const styles = StyleSheet.create({
   },
   bayCard: {
     minWidth: '47%',
+    minHeight: 60,
     flexGrow: 1,
     borderRadius: radius[12],
     paddingVertical: spacing[12],
     paddingHorizontal: spacing[12],
+    justifyContent: 'center',
   },
   bayTopRow: {
     flexDirection: 'row',
@@ -306,7 +310,7 @@ const styles = StyleSheet.create({
   },
   dirtChip: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: radius[12],
     alignItems: 'center',
     justifyContent: 'center',
