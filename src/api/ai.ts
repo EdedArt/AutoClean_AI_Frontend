@@ -57,17 +57,38 @@ export interface UploadableImageAsset {
   type?: string | null;
 }
 
-export function getCompressedAssetSizeBytes(asset: UploadableImageAsset): number | null {
-  if (typeof asset.base64 === 'string' && asset.base64.length > 0) {
-    const cleanedLength = asset.base64.replace(/=+$/, '').length;
-    return Math.floor((cleanedLength * 3) / 4);
+export function normalizeUploadableUri(rawUri: string | null | undefined): string {
+  if (!rawUri || typeof rawUri !== 'string') {
+    throw new ApiError(
+      'No se pudo obtener la ruta del archivo de imagen seleccionado en el dispositivo.',
+      'FILE_READ_ERROR',
+      400,
+    );
   }
 
-  if (typeof asset.fileSize === 'number' && Number.isFinite(asset.fileSize) && asset.fileSize > 0) {
-    return asset.fileSize;
+  const trimmed = rawUri.trim();
+  if (!trimmed) {
+    throw new ApiError(
+      'La ruta del archivo de imagen seleccionado está vacía.',
+      'FILE_READ_ERROR',
+      400,
+    );
   }
 
-  return null;
+  if (trimmed.startsWith('/')) {
+    return `file://${trimmed}`;
+  }
+
+  if (trimmed.startsWith('file://') || trimmed.startsWith('content://')) {
+    return trimmed;
+  }
+
+  throw new ApiError(
+    'El archivo seleccionado no tiene una ruta local válida en el dispositivo.',
+    'FILE_READ_ERROR',
+    400,
+    trimmed.slice(0, 32),
+  );
 }
 
 export function normalizeJpegFileName(rawName: string | null | undefined, orderId: number): string {
@@ -110,22 +131,13 @@ export async function analyzeOrderImage(
     );
   }
 
-  const sizeBytes = getCompressedAssetSizeBytes(asset);
-  if (sizeBytes !== null && sizeBytes > MAX_IMAGE_FILE_SIZE_BYTES) {
-    throw new ApiError(
-      'La fotografía seleccionada supera el tamaño máximo permitido de 5 MB incluso tras comprimirla.',
-      'FILE_TOO_LARGE',
-      413,
-      { sizeBytes, maxBytes: MAX_IMAGE_FILE_SIZE_BYTES },
-    );
-  }
-
+  const uploadUri = normalizeUploadableUri(asset.uri);
   const token = await getToken();
   const name = normalizeJpegFileName(asset.fileName, orderId);
 
   const formData = new FormData();
   formData.append('image', {
-    uri: asset.uri,
+    uri: uploadUri,
     name,
     type: 'image/jpeg',
   } as unknown as Blob);
