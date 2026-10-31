@@ -5,16 +5,18 @@ import { Link } from 'expo-router';
 import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
+import { Card } from '@/components/Card';
+import { Icon } from '@/components/Icon';
 import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField, TextFieldInstance } from '@/components/TextField';
 import { useAuth } from '@/features/auth';
 import { loginSchema } from '@/lib/validation';
-import { radius, spacing } from '@/theme/tokens';
+import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export default function LoginScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -128,8 +130,8 @@ export default function LoginScreen() {
   return (
     <ScreenContainer scroll contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Logo size={48} variant="full" />
-        <AppText variant="title" style={styles.title}>
+        <Logo size={52} variant="full" />
+        <AppText variant="title" weight="bold" style={styles.title}>
           Bienvenido
         </AppText>
         <AppText variant="caption" color="textMuted" style={styles.subtitle}>
@@ -137,21 +139,25 @@ export default function LoginScreen() {
         </AppText>
       </View>
 
-      {generalError && (
-        <View
-          style={[
-            styles.alertBox,
-            { backgroundColor: colors.surfaceAlt, borderColor: colors.danger },
-          ]}
-          accessibilityRole="alert"
-        >
-          <AppText variant="caption" color="danger" style={styles.alertText}>
-            {generalError}
-          </AppText>
-        </View>
-      )}
+      <Card variant="elevated" style={styles.formCard}>
+        {generalError && (
+          <View
+            style={[
+              styles.alertBox,
+              {
+                backgroundColor: withAlpha(colors.danger, isDark ? 0.16 : 0.08),
+                borderColor: withAlpha(colors.danger, isDark ? 0.4 : 0.28),
+              },
+            ]}
+            accessibilityRole="alert"
+          >
+            <Icon name="AlertCircle" size={18} color={colors.danger} />
+            <AppText variant="caption" color="danger" style={styles.alertText}>
+              {generalError}
+            </AppText>
+          </View>
+        )}
 
-      <View style={styles.form}>
         <TextField
           label="Correo electrónico"
           placeholder="ejemplo@autoclean.com"
@@ -190,18 +196,19 @@ export default function LoginScreen() {
           title="Iniciar sesión"
           variant="primary"
           size="lg"
+          fullWidth
           loading={loading}
           onPress={handleSubmit}
           style={styles.submitButton}
         />
-      </View>
+      </Card>
 
       <View style={styles.footer}>
         <AppText variant="body" color="textMuted">
           ¿No tienes cuenta?{' '}
         </AppText>
         <Link href="/(auth)/register" asChild>
-          <Pressable hitSlop={8} accessibilityRole="link">
+          <Pressable hitSlop={8} accessibilityRole="link" style={styles.footerLinkTouch}>
             <AppText variant="body" color="primary" style={styles.linkText}>
               Regístrate
             </AppText>
@@ -214,9 +221,9 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: spacing[20],
-    paddingVertical: spacing[32],
+    paddingVertical: spacing[24],
   },
   header: {
     alignItems: 'center',
@@ -232,19 +239,23 @@ const styles = StyleSheet.create({
     maxWidth: 320,
     marginTop: spacing[4],
   },
-  alertBox: {
-    borderWidth: 1,
-    borderRadius: radius[8],
-    padding: spacing[12],
+  formCard: {
+    width: '100%',
+    padding: spacing[20],
     marginBottom: spacing[16],
   },
-  alertText: {
-    textAlign: 'center',
-    lineHeight: 18,
+  alertBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: radius[12],
+    padding: spacing[12],
+    marginBottom: spacing[16],
+    gap: spacing[8],
   },
-  form: {
-    width: '100%',
-    marginBottom: spacing[20],
+  alertText: {
+    flex: 1,
+    lineHeight: 18,
   },
   submitButton: {
     marginTop: spacing[8],
@@ -253,7 +264,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: spacing[12],
+    marginTop: spacing[4],
+  },
+  footerLinkTouch: {
+    minHeight: 44,
+    justifyContent: 'center',
+    paddingHorizontal: spacing[4],
   },
   linkText: {
     fontWeight: '600',
