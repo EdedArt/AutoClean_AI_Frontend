@@ -38,7 +38,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
 
   return (
     <Card
-      variant="outlined"
+      variant="elevated"
       style={styles.card}
       accessible
       accessibilityRole="summary"
@@ -48,7 +48,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
         <AppText variant="title" weight="bold" style={{ color: colors.text }}>
           {summary.total}
         </AppText>
-        <AppText variant="caption" muted>
+        <AppText variant="caption" muted style={styles.label}>
           Bahías totales
         </AppText>
       </View>
@@ -59,7 +59,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
         <AppText variant="title" weight="bold" style={{ color: colors.primary }}>
           {summary.occupied}
         </AppText>
-        <AppText variant="caption" muted>
+        <AppText variant="caption" muted style={styles.label}>
           Ocupadas
         </AppText>
       </View>
@@ -70,7 +70,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
         <AppText variant="title" weight="bold" style={{ color: colors.accent }}>
           {summary.free}
         </AppText>
-        <AppText variant="caption" muted>
+        <AppText variant="caption" muted style={styles.label}>
           Libres
         </AppText>
       </View>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: spacing[12],
+    paddingVertical: spacing[16],
     paddingHorizontal: spacing[16],
     marginBottom: spacing[16],
   },
@@ -92,9 +92,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  label: {
+    marginTop: 2,
+  },
   divider: {
     width: 1,
-    height: 32,
+    height: 36,
   },
   skeletonContainer: {
     flexDirection: 'row',

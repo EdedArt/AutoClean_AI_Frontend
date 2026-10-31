@@ -18,10 +18,10 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { useTheme } from '@/theme';
-import { radius, spacing } from '@/theme/tokens';
+import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export default function PanelScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<OrderFilterType>('ALL');
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
 
@@ -88,8 +88,8 @@ export default function PanelScreen() {
           style={[
             styles.offlineBanner,
             {
-              backgroundColor: colors.surfaceAlt,
-              borderColor: colors.warning,
+              backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+              borderColor: withAlpha(colors.warning, isDark ? 0.4 : 0.3),
             },
           ]}
           accessible
@@ -116,12 +116,23 @@ export default function PanelScreen() {
       {/* 2. Error State (without cached data) */}
       {isError && !hasData ? (
         <Card variant="outlined" style={styles.stateCard} accessibilityRole="alert">
-          <Icon
-            name={isNetworkError ? 'WifiOff' : isRateLimited ? 'Clock' : 'AlertCircle'}
-            size={36}
-            color={isRateLimited ? colors.warning : colors.danger}
-            style={styles.stateIcon}
-          />
+          <View
+            style={[
+              styles.emptyIconCircle,
+              {
+                backgroundColor: withAlpha(
+                  isRateLimited ? colors.warning : colors.danger,
+                  isDark ? 0.18 : 0.1,
+                ),
+              },
+            ]}
+          >
+            <Icon
+              name={isNetworkError ? 'WifiOff' : isRateLimited ? 'Clock' : 'AlertCircle'}
+              size={26}
+              color={isRateLimited ? colors.warning : colors.danger}
+            />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             {isNetworkError
               ? 'Sin conexión con el servidor'
@@ -186,11 +197,10 @@ export default function PanelScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing[16],
+    paddingTop: spacing[12],
     paddingBottom: spacing[32],
   },
   header: {
-    marginTop: spacing[8],
     marginBottom: spacing[16],
   },
   title: {
@@ -204,7 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing[8],
     paddingHorizontal: spacing[12],
-    borderRadius: radius[8],
+    borderRadius: radius[12],
     borderWidth: 1,
     marginBottom: spacing[12],
   },
@@ -219,9 +229,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[32],
     paddingHorizontal: spacing[16],
     marginTop: spacing[4],
-  },
-  stateIcon: {
-    marginBottom: spacing[12],
   },
   stateTitle: {
     textAlign: 'center',

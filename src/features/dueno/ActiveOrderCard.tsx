@@ -10,7 +10,7 @@ import { ProgressBar } from '@/features/buscar/ProgressBar';
 import { getPhase } from '@/lib/phases';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
-import { spacing } from '@/theme/tokens';
+import { radius, spacing } from '@/theme/tokens';
 
 export interface ActiveOrderCardProps {
   order: ServiceOrder;
@@ -69,9 +69,16 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
             {order.porcentajeProgreso}%
           </AppText>
           {order.bay ? (
-            <AppText variant="caption" muted style={styles.bayText}>
-              · Bahía {order.bay.numero}
-            </AppText>
+            <View
+              style={[
+                styles.bayTag,
+                { backgroundColor: colors.surfaceAlt, borderColor: colors.border },
+              ]}
+            >
+              <AppText variant="caption" muted>
+                Bahía {order.bay.numero}
+              </AppText>
+            </View>
           ) : null}
         </View>
 
@@ -124,9 +131,13 @@ const styles = StyleSheet.create({
   metaLeft: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing[8],
   },
-  bayText: {
-    marginLeft: 6,
+  bayTag: {
+    paddingHorizontal: spacing[8],
+    paddingVertical: 2,
+    borderRadius: radius.pill,
+    borderWidth: 1,
   },
   metaRight: {
     flexDirection: 'row',

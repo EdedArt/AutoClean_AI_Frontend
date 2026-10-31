@@ -11,7 +11,6 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
-import { ProgressBar } from '@/features/buscar/ProgressBar';
 import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
@@ -25,24 +24,30 @@ export interface AiAnalyzerCardProps {
 }
 
 interface StageCopy {
+  stepIndex: number;
   title: string;
   subtitle: string;
 }
 
+const STAGE_LABELS = ['Enviando', 'Analizando', 'Aplicando'] as const;
+
 function getStageCopy(elapsedSeconds: number): StageCopy {
   if (elapsedSeconds < 5) {
     return {
+      stepIndex: 0,
       title: 'Enviando la foto…',
       subtitle: 'Transmitiendo imagen de forma segura al servidor',
     };
   }
   if (elapsedSeconds < 25) {
     return {
+      stepIndex: 1,
       title: 'La IA está analizando…',
       subtitle: 'Verificando la placa y evaluando el avance del lavado',
     };
   }
   return {
+    stepIndex: 2,
     title: 'Aplicando el resultado…',
     subtitle: 'Actualizando la fase de la orden de servicio',
   };
@@ -65,6 +70,7 @@ export function AiAnalyzerCard({
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const [pulseAnim] = useState(() => new Animated.Value(1));
+  const [sweepAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     let isMounted = true;
@@ -100,7 +106,9 @@ export function AiAnalyzerCard({
   useEffect(() => {
     if (!isAnalyzing) {
       pulseAnim.stopAnimation();
+      sweepAnim.stopAnimation();
       pulseAnim.setValue(1);
+      sweepAnim.setValue(0);
       return;
     }
 
@@ -108,32 +116,54 @@ export function AiAnalyzerCard({
       setElapsedSeconds((prev) => prev + 1);
     }, 1000);
 
-    let loop: Animated.CompositeAnimation | null = null;
+    let pulseLoop: Animated.CompositeAnimation | null = null;
+    let sweepLoop: Animated.CompositeAnimation | null = null;
+
     if (!reduceMotion) {
-      loop = Animated.loop(
+      pulseLoop = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, {
-            toValue: 1.08,
-            duration: 900,
+            toValue: 1.07,
+            duration: 950,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
           Animated.timing(pulseAnim, {
-            toValue: 0.94,
-            duration: 900,
+            toValue: 0.95,
+            duration: 950,
             easing: Easing.inOut(Easing.ease),
             useNativeDriver: true,
           }),
         ]),
       );
-      loop.start();
+
+      sweepLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(sweepAnim, {
+            toValue: 1,
+            duration: 1700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(sweepAnim, {
+            toValue: 0,
+            duration: 1700,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+
+      pulseLoop.start();
+      sweepLoop.start();
     }
 
     return () => {
       clearInterval(interval);
-      loop?.stop();
+      pulseLoop?.stop();
+      sweepLoop?.stop();
     };
-  }, [isAnalyzing, reduceMotion, pulseAnim]);
+  }, [isAnalyzing, reduceMotion, pulseAnim, sweepAnim]);
 
   const handleCancelAnalysis = () => {
     abortControllerRef.current?.abort();
@@ -303,8 +333,11 @@ export function AiAnalyzerCard({
   const isActionDisabled = isAnalyzing || isAiOffline || isOrderCompleted || isOrderNotReady;
 
   const stageCopy = getStageCopy(elapsedSeconds);
-  const progressRatio = Math.min(1, elapsedSeconds / 35);
-  const simulatedProgress = Math.round(12 + (1 - Math.pow(1 - progressRatio, 1.8)) * 80);
+
+  const sweepTranslateX = sweepAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [-90, 180],
+  });
 
   const aiProviderBadgeLabel = aiStatus
     ? aiStatus.effectiveProvider === 'gemini'
@@ -327,12 +360,24 @@ export function AiAnalyzerCard({
     >
       {/* Top Row: Title + AI Status Badge */}
       <View style={styles.headerRow}>
+        <View
+          style={[
+            styles.headerIconBadge,
+            { backgroundColor: withAlpha(colors.primary, isDark ? 0.2 : 0.1) },
+          ]}
+        >
+          <Icon name="Sparkles" size={20} color={colors.primary} />
+        </View>
         <View style={styles.titleBlock}>
-          <View style={styles.titleLine}>
-            <Icon name="Sparkles" size={20} color={colors.primary} style={styles.titleIcon} />
-            <AppText variant="subtitle" weight="bold">
+          <View style={styles.titleTopRow}>
+            <AppText variant="subtitle" weight="bold" style={styles.titleText}>
               Avance inteligente con IA
             </AppText>
+            <Badge
+              label={aiProviderBadgeLabel}
+              variant={isAiOffline ? 'danger' : 'primary'}
+              size="sm"
+            />
           </View>
           <AppText variant="caption" muted style={styles.subtitleText}>
             Selecciona una foto del vehículo desde la galería para detectar la placa y avanzar de
@@ -341,22 +386,14 @@ export function AiAnalyzerCard({
         </View>
       </View>
 
-      <View style={styles.statusRow}>
-        <Badge
-          label={aiProviderBadgeLabel}
-          variant={isAiOffline ? 'danger' : 'primary'}
-          size="sm"
-        />
-      </View>
-
-      {/* Designed ~35s Waiting Experience */}
+      {/* Designed ~35s Waiting Experience (without faking a precise percentage) */}
       {isAnalyzing ? (
         <View
           style={[
             styles.waitingBox,
             {
-              backgroundColor: withAlpha(colors.primary, isDark ? 0.14 : 0.07),
-              borderColor: withAlpha(colors.primary, isDark ? 0.35 : 0.25),
+              backgroundColor: withAlpha(colors.primary, isDark ? 0.11 : 0.06),
+              borderColor: withAlpha(colors.primary, isDark ? 0.35 : 0.24),
             },
           ]}
           accessible
@@ -364,69 +401,167 @@ export function AiAnalyzerCard({
           accessibilityLiveRegion="polite"
           accessibilityLabel={`${stageCopy.title} ${stageCopy.subtitle}`}
         >
-          <Animated.View
+          <View style={styles.waitingHeaderRow}>
+            <Animated.View
+              style={[
+                styles.pulseCircle,
+                {
+                  backgroundColor: withAlpha(colors.primary, isDark ? 0.24 : 0.14),
+                  borderColor: withAlpha(colors.primary, isDark ? 0.45 : 0.3),
+                  transform: [{ scale: pulseAnim }],
+                },
+              ]}
+            >
+              <Icon name="Sparkles" size={24} color={colors.primary} />
+            </Animated.View>
+
+            <View style={styles.waitingCopyBlock}>
+              <AppText variant="subtitle" weight="bold" style={styles.stageTitle}>
+                {stageCopy.title}
+              </AppText>
+              <AppText variant="caption" muted style={styles.stageSubtitle}>
+                {stageCopy.subtitle}
+              </AppText>
+            </View>
+          </View>
+
+          {/* Continuous calm activity bar without fake percentage */}
+          <View
             style={[
-              styles.pulseCircle,
-              {
-                backgroundColor: withAlpha(colors.primary, isDark ? 0.24 : 0.14),
-                transform: [{ scale: pulseAnim }],
-              },
+              styles.continuousTrack,
+              { backgroundColor: withAlpha(colors.primary, isDark ? 0.2 : 0.14) },
             ]}
           >
-            <Icon name="Sparkles" size={28} color={colors.primary} />
-          </Animated.View>
-
-          <AppText variant="subtitle" weight="bold" style={styles.stageTitle}>
-            {stageCopy.title}
-          </AppText>
-          <AppText variant="caption" muted style={styles.stageSubtitle}>
-            {stageCopy.subtitle}
-          </AppText>
-
-          <View style={styles.waitProgressWrapper}>
-            <ProgressBar progress={simulatedProgress} color={colors.primary} height={8} />
+            {reduceMotion ? (
+              <View style={[styles.staticIndicatorBar, { backgroundColor: colors.primary }]} />
+            ) : (
+              <Animated.View
+                style={[
+                  styles.sweepIndicatorBar,
+                  {
+                    backgroundColor: colors.primary,
+                    transform: [{ translateX: sweepTranslateX }],
+                  },
+                ]}
+              />
+            )}
           </View>
 
-          <View style={styles.waitMetaRow}>
-            <AppText variant="caption" weight="semiBold" style={{ color: colors.primary }}>
-              {simulatedProgress}%
-            </AppText>
-            <AppText variant="caption" muted>
-              Tiempo transcurrido: {elapsedSeconds} s (aprox. 35 s)
-            </AppText>
+          {/* 3-stage calm step pills */}
+          <View style={styles.stageStepsRow}>
+            {STAGE_LABELS.map((label, index) => {
+              const isCompleted = index < stageCopy.stepIndex;
+              const isCurrent = index === stageCopy.stepIndex;
+              const dotColor = isCompleted || isCurrent ? colors.primary : colors.disabledText;
+
+              return (
+                <View key={label} style={styles.stageStepItem}>
+                  <View
+                    style={[
+                      styles.stageStepDot,
+                      {
+                        backgroundColor: dotColor,
+                        transform: [{ scale: isCurrent ? 1.2 : 1 }],
+                      },
+                    ]}
+                  />
+                  <AppText
+                    variant="caption"
+                    weight={isCurrent ? 'semiBold' : 'regular'}
+                    style={{
+                      color: isCurrent
+                        ? colors.primary
+                        : isCompleted
+                          ? colors.text
+                          : colors.textMuted,
+                    }}
+                  >
+                    {label}
+                  </AppText>
+                </View>
+              );
+            })}
           </View>
 
-          <Button
-            title="Cancelar análisis"
-            variant="ghost"
-            size="sm"
-            leftIcon="X"
-            onPress={handleCancelAnalysis}
-            style={styles.cancelButton}
-            accessibilityLabel="Cancelar análisis de imagen en curso"
-          />
+          <View style={styles.waitFooterRow}>
+            <View
+              style={[
+                styles.elapsedBadge,
+                { backgroundColor: colors.surface, borderColor: colors.border },
+              ]}
+            >
+              <Icon name="Clock" size={13} color={colors.primary} style={styles.elapsedIcon} />
+              <AppText variant="caption" muted>
+                Tiempo transcurrido: {elapsedSeconds} s (aprox. 35 s)
+              </AppText>
+            </View>
+
+            <Button
+              title="Cancelar análisis"
+              variant="secondary"
+              size="sm"
+              leftIcon="X"
+              onPress={handleCancelAnalysis}
+              style={styles.cancelButton}
+              accessibilityLabel="Cancelar análisis de imagen en curso"
+            />
+          </View>
         </View>
       ) : (
         <View style={styles.actionArea}>
           {isOrderNotReady ? (
-            <AppText variant="caption" color="warning" style={styles.helperNotice}>
-              Primero marca el vehículo como &quot;Listo para lavar&quot; arriba para habilitar el
-              análisis con IA.
-            </AppText>
+            <View
+              style={[
+                styles.helperNoticeBox,
+                {
+                  backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+                  borderColor: withAlpha(colors.warning, isDark ? 0.35 : 0.25),
+                },
+              ]}
+            >
+              <Icon name="Info" size={15} color={colors.warning} />
+              <AppText variant="caption" color="warning" style={styles.helperNoticeText}>
+                Primero marca el vehículo como &quot;Listo para lavar&quot; arriba para habilitar el
+                análisis con IA.
+              </AppText>
+            </View>
           ) : isOrderCompleted ? (
-            <AppText variant="caption" color="accent" style={styles.helperNotice}>
-              El vehículo ya alcanzó la fase Listo. Puedes entregarlo al cliente.
-            </AppText>
+            <View
+              style={[
+                styles.helperNoticeBox,
+                {
+                  backgroundColor: withAlpha(colors.accent, isDark ? 0.14 : 0.08),
+                  borderColor: withAlpha(colors.accent, isDark ? 0.35 : 0.25),
+                },
+              ]}
+            >
+              <Icon name="CircleCheck" size={15} color={colors.accent} />
+              <AppText variant="caption" color="accent" style={styles.helperNoticeText}>
+                El vehículo ya alcanzó la fase Listo. Puedes entregarlo al cliente.
+              </AppText>
+            </View>
           ) : isAiOffline ? (
-            <AppText variant="caption" color="danger" style={styles.helperNotice}>
-              El motor de IA no está disponible en este momento. Utiliza el control manual debajo.
-            </AppText>
+            <View
+              style={[
+                styles.helperNoticeBox,
+                {
+                  backgroundColor: withAlpha(colors.danger, isDark ? 0.14 : 0.08),
+                  borderColor: withAlpha(colors.danger, isDark ? 0.35 : 0.25),
+                },
+              ]}
+            >
+              <Icon name="AlertCircle" size={15} color={colors.danger} />
+              <AppText variant="caption" color="danger" style={styles.helperNoticeText}>
+                El motor de IA no está disponible en este momento. Utiliza el control manual debajo.
+              </AppText>
+            </View>
           ) : null}
 
           <Button
             title="Analizar con IA"
             size="lg"
             leftIcon="Camera"
+            fullWidth
             onPress={() => {
               void handlePickAndAnalyze();
             }}
@@ -436,24 +571,34 @@ export function AiAnalyzerCard({
         </View>
       )}
 
-      {/* Error Message */}
+      {/* Unified Error Feedback Card */}
       {errorMessage && !isAnalyzing ? (
         <View
           style={[
-            styles.feedbackBox,
+            styles.feedbackCard,
             {
-              backgroundColor: colors.surfaceAlt,
-              borderColor: colors.danger,
+              backgroundColor: withAlpha(colors.danger, isDark ? 0.12 : 0.06),
+              borderColor: withAlpha(colors.danger, isDark ? 0.38 : 0.26),
             },
           ]}
           accessible
           accessibilityRole="alert"
         >
-          <Icon name="AlertCircle" size={18} color={colors.danger} style={styles.feedbackIcon} />
-          <View style={styles.feedbackTextCol}>
-            <AppText variant="caption" weight="semiBold" color="danger">
-              No se pudo aplicar el análisis
-            </AppText>
+          <View style={[styles.feedbackAccentBar, { backgroundColor: colors.danger }]} />
+          <View style={styles.feedbackBody}>
+            <View style={styles.feedbackHeaderLine}>
+              <View
+                style={[
+                  styles.feedbackIconCircle,
+                  { backgroundColor: withAlpha(colors.danger, isDark ? 0.22 : 0.14) },
+                ]}
+              >
+                <Icon name="AlertCircle" size={16} color={colors.danger} />
+              </View>
+              <AppText variant="caption" weight="bold" color="danger" style={styles.feedbackTitle}>
+                No se pudo aplicar el análisis
+              </AppText>
+            </View>
             <AppText variant="caption" muted style={styles.feedbackDetail}>
               {errorMessage}
             </AppText>
@@ -461,33 +606,66 @@ export function AiAnalyzerCard({
         </View>
       ) : null}
 
-      {/* Latest Analysis Result Summary (No image rendered) */}
+      {/* Unified Analysis Result Card (Success changed:true / Informational changed:false, no image rendered) */}
       {lastResult && !isAnalyzing ? (
         <View
           style={[
-            styles.feedbackBox,
+            styles.feedbackCard,
             {
-              backgroundColor: colors.surfaceAlt,
-              borderColor: lastResult.phase.changed ? colors.accent : colors.info,
+              backgroundColor: withAlpha(
+                lastResult.phase.changed ? colors.accent : colors.info,
+                isDark ? 0.12 : 0.06,
+              ),
+              borderColor: withAlpha(
+                lastResult.phase.changed ? colors.accent : colors.info,
+                isDark ? 0.38 : 0.26,
+              ),
             },
           ]}
           accessible
           accessibilityRole="summary"
         >
-          <Icon
-            name={lastResult.phase.changed ? 'CircleCheck' : 'Info'}
-            size={18}
-            color={lastResult.phase.changed ? colors.accent : colors.info}
-            style={styles.feedbackIcon}
+          <View
+            style={[
+              styles.feedbackAccentBar,
+              { backgroundColor: lastResult.phase.changed ? colors.accent : colors.info },
+            ]}
           />
-          <View style={styles.feedbackTextCol}>
-            <AppText variant="caption" weight="semiBold">
-              {lastResult.phase.changed
-                ? `Fase avanzada automáticamente: ${getPhase(lastResult.phase.previous)?.label ?? lastResult.phase.previous} → ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}`
-                : lastResult.phase.regression
-                  ? 'Análisis completado · Sin retroceso de fase'
-                  : `Análisis completado · Fase sin cambios (${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current})`}
-            </AppText>
+          <View style={styles.feedbackBody}>
+            <View style={styles.feedbackHeaderLine}>
+              <View
+                style={[
+                  styles.feedbackIconCircle,
+                  {
+                    backgroundColor: withAlpha(
+                      lastResult.phase.changed ? colors.accent : colors.info,
+                      isDark ? 0.22 : 0.14,
+                    ),
+                  },
+                ]}
+              >
+                <Icon
+                  name={lastResult.phase.changed ? 'CircleCheck' : 'Info'}
+                  size={16}
+                  color={lastResult.phase.changed ? colors.accent : colors.info}
+                />
+              </View>
+              <AppText
+                variant="caption"
+                weight="bold"
+                style={[
+                  styles.feedbackTitle,
+                  { color: lastResult.phase.changed ? colors.accent : colors.info },
+                ]}
+              >
+                {lastResult.phase.changed
+                  ? `Fase avanzada automáticamente: ${getPhase(lastResult.phase.previous)?.label ?? lastResult.phase.previous} → ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}`
+                  : lastResult.phase.regression
+                    ? 'Análisis completado · Sin retroceso de fase'
+                    : `Análisis completado · Fase sin cambios (${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current})`}
+              </AppText>
+            </View>
+
             <AppText variant="caption" muted style={styles.feedbackDetail}>
               {lastResult.phase.changed
                 ? `Placa verificada: ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) · Fase detectada: ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.).`
@@ -497,6 +675,7 @@ export function AiAnalyzerCard({
                     ? `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected}, pero la confianza en la fase (${Math.round(lastResult.phase.confidence * 100)}%) fue inferior al umbral mínimo (${Math.round((aiStatus?.minConfidence ?? 0.6) * 100)}%). La orden permanece en ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}.`
                     : `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) y detectó que el vehículo sigue en la etapa ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.), por lo que no hubo cambio de fase.`}
             </AppText>
+
             {lastResult.fallbackUsed ? (
               <AppText variant="caption" muted style={styles.fallbackNotice}>
                 Nota: se utilizó el proveedor simulado de respaldo ante demora de Gemini.
@@ -516,92 +695,169 @@ const styles = StyleSheet.create({
   },
   headerRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: spacing[8],
+    marginBottom: spacing[16],
+  },
+  headerIconBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: radius[12],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing[12],
   },
   titleBlock: {
     flex: 1,
   },
-  titleLine: {
+  titleTopRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: spacing[8],
     marginBottom: 4,
   },
-  titleIcon: {
-    marginRight: 8,
+  titleText: {
+    flexShrink: 1,
   },
   subtitleText: {
     lineHeight: 18,
   },
-  statusRow: {
-    flexDirection: 'row',
-    marginBottom: spacing[16],
-  },
   actionArea: {
     width: '100%',
   },
-  helperNotice: {
+  helperNoticeBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[8],
+    borderRadius: radius[12],
+    borderWidth: 1,
     marginBottom: spacing[12],
+    gap: spacing[8],
+  },
+  helperNoticeText: {
+    flex: 1,
     lineHeight: 18,
   },
   waitingBox: {
     borderRadius: radius[16],
     borderWidth: 1,
     padding: spacing[16],
+  },
+  waitingHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-  },
-  pulseCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: radius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: spacing[12],
-  },
-  stageTitle: {
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  stageSubtitle: {
-    textAlign: 'center',
     marginBottom: spacing[16],
   },
-  waitProgressWrapper: {
-    width: '100%',
-    marginBottom: spacing[8],
+  pulseCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing[12],
   },
-  waitMetaRow: {
+  waitingCopyBlock: {
+    flex: 1,
+  },
+  stageTitle: {
+    marginBottom: 2,
+  },
+  stageSubtitle: {
+    lineHeight: 18,
+  },
+  continuousTrack: {
     width: '100%',
+    height: 6,
+    borderRadius: radius.pill,
+    overflow: 'hidden',
+    marginBottom: spacing[12],
+  },
+  sweepIndicatorBar: {
+    width: 120,
+    height: '100%',
+    borderRadius: radius.pill,
+  },
+  staticIndicatorBar: {
+    width: '50%',
+    height: '100%',
+    borderRadius: radius.pill,
+  },
+  stageStepsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing[8],
+    paddingHorizontal: spacing[4],
+    marginBottom: spacing[16],
+  },
+  stageStepItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  stageStepDot: {
+    width: 7,
+    height: 7,
+    borderRadius: radius.pill,
+  },
+  waitFooterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: spacing[8],
+  },
+  elapsedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing[12],
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  elapsedIcon: {
+    marginRight: 6,
   },
   cancelButton: {
-    marginTop: spacing[4],
+    minWidth: 148,
   },
-  feedbackBox: {
+  feedbackCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
     borderRadius: radius[12],
     borderWidth: 1,
+    marginTop: spacing[16],
+    overflow: 'hidden',
+  },
+  feedbackAccentBar: {
+    width: 4,
+  },
+  feedbackBody: {
+    flex: 1,
     padding: spacing[12],
-    marginTop: spacing[12],
   },
-  feedbackIcon: {
-    marginRight: spacing[8],
-    marginTop: 2,
+  feedbackHeaderLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    gap: spacing[8],
   },
-  feedbackTextCol: {
+  feedbackIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  feedbackTitle: {
     flex: 1,
   },
   feedbackDetail: {
-    marginTop: 2,
     lineHeight: 18,
   },
   fallbackNotice: {
-    marginTop: 4,
+    marginTop: 6,
     fontStyle: 'italic',
   },
 });

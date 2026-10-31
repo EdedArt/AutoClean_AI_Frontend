@@ -19,7 +19,7 @@ import {
 } from '@/features/dueno/useOrderMutations';
 import { formatPlateInput, INVALID_PLATE_MESSAGE, isValidPlate } from '@/lib/plate';
 import { useTheme } from '@/theme';
-import { radius, spacing } from '@/theme/tokens';
+import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -35,7 +35,7 @@ interface FormErrors {
 }
 
 export default function RegistrarScreen() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const isFocused = useIsFocused();
 
   const [placa, setPlaca] = useState('');
@@ -298,12 +298,26 @@ export default function RegistrarScreen() {
       {createdOrder ? (
         <Card
           variant="elevated"
-          style={[styles.feedbackCard, { borderColor: colors.accent, borderWidth: 1 }]}
+          style={[
+            styles.feedbackCard,
+            {
+              borderColor: withAlpha(colors.accent, isDark ? 0.45 : 0.35),
+              backgroundColor: withAlpha(colors.accent, isDark ? 0.1 : 0.05),
+              borderWidth: 1,
+            },
+          ]}
           accessible
           accessibilityRole="alert"
         >
           <View style={styles.feedbackHeader}>
-            <Icon name="CircleCheck" size={24} color={colors.accent} style={styles.feedbackIcon} />
+            <View
+              style={[
+                styles.feedbackIconCircle,
+                { backgroundColor: withAlpha(colors.accent, isDark ? 0.22 : 0.14) },
+              ]}
+            >
+              <Icon name="CircleCheck" size={20} color={colors.accent} />
+            </View>
             <View style={styles.feedbackTextCol}>
               <AppText variant="subtitle" weight="semiBold">
                 Orden registrada exitosamente
@@ -335,20 +349,37 @@ export default function RegistrarScreen() {
           style={[
             styles.feedbackCard,
             {
-              borderColor: submitBanner.type === 'warning' ? colors.warning : colors.danger,
-              backgroundColor: colors.surfaceAlt,
+              borderColor: withAlpha(
+                submitBanner.type === 'warning' ? colors.warning : colors.danger,
+                isDark ? 0.45 : 0.35,
+              ),
+              backgroundColor: withAlpha(
+                submitBanner.type === 'warning' ? colors.warning : colors.danger,
+                isDark ? 0.12 : 0.06,
+              ),
             },
           ]}
           accessible
           accessibilityRole="alert"
         >
           <View style={styles.feedbackHeader}>
-            <Icon
-              name="AlertCircle"
-              size={22}
-              color={submitBanner.type === 'warning' ? colors.warning : colors.danger}
-              style={styles.feedbackIcon}
-            />
+            <View
+              style={[
+                styles.feedbackIconCircle,
+                {
+                  backgroundColor: withAlpha(
+                    submitBanner.type === 'warning' ? colors.warning : colors.danger,
+                    isDark ? 0.22 : 0.14,
+                  ),
+                },
+              ]}
+            >
+              <Icon
+                name="AlertCircle"
+                size={20}
+                color={submitBanner.type === 'warning' ? colors.warning : colors.danger}
+              />
+            </View>
             <View style={styles.feedbackTextCol}>
               <AppText variant="body" weight="semiBold">
                 {submitBanner.title}
@@ -493,6 +524,8 @@ export default function RegistrarScreen() {
           disabled={isSubmitting}
         />
 
+        <View style={[styles.sectionDivider, { backgroundColor: colors.border }]} />
+
         {catalogsLoading ? (
           <View style={styles.catalogsLoadingBlock}>
             <ActivityIndicator size="small" color={colors.primary} />
@@ -504,7 +537,10 @@ export default function RegistrarScreen() {
           <View
             style={[
               styles.catalogsErrorBlock,
-              { backgroundColor: colors.surfaceAlt, borderColor: colors.danger },
+              {
+                backgroundColor: withAlpha(colors.danger, isDark ? 0.14 : 0.08),
+                borderColor: withAlpha(colors.danger, isDark ? 0.4 : 0.28),
+              },
             ]}
           >
             <AppText variant="caption" color="danger" style={styles.catalogsErrorText}>
@@ -554,6 +590,7 @@ export default function RegistrarScreen() {
           title="Registrar vehículo y crear orden"
           size="lg"
           leftIcon="Plus"
+          fullWidth
           onPress={handleSubmit}
           loading={isSubmitting}
           disabled={isSubmitting || catalogsLoading}
@@ -566,11 +603,10 @@ export default function RegistrarScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing[16],
+    paddingTop: spacing[12],
     paddingBottom: spacing[32],
   },
   header: {
-    marginTop: spacing[8],
     marginBottom: spacing[16],
   },
   title: {
@@ -586,9 +622,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  feedbackIcon: {
+  feedbackIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing[12],
-    marginTop: 2,
   },
   feedbackTextCol: {
     flex: 1,
@@ -609,6 +649,10 @@ const styles = StyleSheet.create({
   },
   colItem: {
     flex: 1,
+  },
+  sectionDivider: {
+    height: 1,
+    marginBottom: spacing[16],
   },
   catalogsLoadingBlock: {
     flexDirection: 'row',

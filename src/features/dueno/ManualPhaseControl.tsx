@@ -7,7 +7,7 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { WASH_PHASES } from '@/lib/phases';
 import { useTheme } from '@/theme';
-import { spacing, WashPhaseCode } from '@/theme/tokens';
+import { radius, spacing, WashPhaseCode } from '@/theme/tokens';
 
 export interface ManualPhaseControlProps {
   currentPhase: WashPhaseCode;
@@ -26,7 +26,16 @@ export function ManualPhaseControl({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Card variant="outlined" style={styles.card}>
+    <Card
+      variant="outlined"
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surfaceDimmed,
+          borderColor: colors.border,
+        },
+      ]}
+    >
       <Pressable
         onPress={() => setExpanded((prev) => !prev)}
         accessible
@@ -41,13 +50,10 @@ export function ManualPhaseControl({
         style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}
       >
         <View style={styles.headerLeft}>
-          <Icon
-            name="SlidersHorizontal"
-            size={18}
-            color={colors.textMuted}
-            style={styles.headerIcon}
-          />
-          <View>
+          <View style={[styles.headerIconPill, { backgroundColor: colors.surfaceAlt }]}>
+            <Icon name="SlidersHorizontal" size={16} color={colors.textMuted} />
+          </View>
+          <View style={styles.headerTextCol}>
             <AppText variant="body" weight="medium" color="textMuted">
               Control manual
             </AppText>
@@ -115,8 +121,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: spacing[8],
   },
-  headerIcon: {
+  headerIconPill: {
+    width: 32,
+    height: 32,
+    borderRadius: radius[8],
+    alignItems: 'center',
+    justifyContent: 'center',
     marginRight: spacing[12],
+  },
+  headerTextCol: {
+    flex: 1,
   },
   body: {
     borderTopWidth: 1,

@@ -6,7 +6,7 @@ import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { useTheme } from '@/theme';
-import { radius, spacing } from '@/theme/tokens';
+import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export function HistoryEmptyState() {
   const { colors } = useTheme();
@@ -42,12 +42,19 @@ export function HistoryErrorState({
   isFetching = false,
   onRetry,
 }: HistoryErrorStateProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   if (isRateLimited) {
     return (
       <Card variant="outlined" style={styles.stateCard} accessibilityRole="alert">
-        <Icon name="Clock" size={32} color={colors.warning} style={styles.stateIcon} />
+        <View
+          style={[
+            styles.iconCircle,
+            { backgroundColor: withAlpha(colors.warning, isDark ? 0.18 : 0.1) },
+          ]}
+        >
+          <Icon name="Clock" size={24} color={colors.warning} />
+        </View>
         <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
           Demasiadas consultas seguidas
         </AppText>
@@ -69,12 +76,14 @@ export function HistoryErrorState({
 
   return (
     <Card variant="outlined" style={styles.stateCard} accessibilityRole="alert">
-      <Icon
-        name={isNetworkError ? 'WifiOff' : 'RefreshCw'}
-        size={32}
-        color={colors.danger}
-        style={styles.stateIcon}
-      />
+      <View
+        style={[
+          styles.iconCircle,
+          { backgroundColor: withAlpha(colors.danger, isDark ? 0.18 : 0.1) },
+        ]}
+      >
+        <Icon name={isNetworkError ? 'WifiOff' : 'RefreshCw'} size={24} color={colors.danger} />
+      </View>
       <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
         {isNetworkError ? 'Sin conexión con el servidor' : 'No se pudo cargar el historial'}
       </AppText>
@@ -96,15 +105,15 @@ export function HistoryErrorState({
 }
 
 export function HistoryOfflineBanner() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
       style={[
         styles.banner,
         {
-          backgroundColor: colors.surfaceAlt,
-          borderColor: colors.warning,
+          backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+          borderColor: withAlpha(colors.warning, isDark ? 0.4 : 0.3),
         },
       ]}
       accessible
@@ -120,15 +129,15 @@ export function HistoryOfflineBanner() {
 }
 
 export function HistoryRateLimitBanner() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
       style={[
         styles.banner,
         {
-          backgroundColor: colors.surfaceAlt,
-          borderColor: colors.warning,
+          backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+          borderColor: withAlpha(colors.warning, isDark ? 0.4 : 0.3),
         },
       ]}
       accessible
@@ -149,15 +158,15 @@ export interface HistoryRollbackBannerProps {
 }
 
 export function HistoryRollbackBanner({ message, onDismiss }: HistoryRollbackBannerProps) {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
 
   return (
     <View
       style={[
         styles.rollbackBanner,
         {
-          backgroundColor: colors.surfaceAlt,
-          borderColor: colors.danger,
+          backgroundColor: withAlpha(colors.danger, isDark ? 0.16 : 0.08),
+          borderColor: withAlpha(colors.danger, isDark ? 0.4 : 0.3),
         },
       ]}
       accessible
@@ -187,8 +196,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[16],
   },
   iconCircle: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: radius.pill,
     alignItems: 'center',
     justifyContent: 'center',
@@ -196,9 +205,6 @@ const styles = StyleSheet.create({
   },
   emptyMessage: {
     textAlign: 'center',
-  },
-  stateIcon: {
-    marginBottom: spacing[12],
   },
   stateTitle: {
     textAlign: 'center',
@@ -210,7 +216,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[8],
   },
   retryButton: {
-    minWidth: 150,
+    minWidth: 160,
   },
   banner: {
     flexDirection: 'row',
@@ -218,7 +224,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing[8],
     paddingHorizontal: spacing[12],
-    borderRadius: radius[8],
+    borderRadius: radius[12],
     borderWidth: 1,
     marginBottom: spacing[12],
   },
@@ -236,7 +242,7 @@ const styles = StyleSheet.create({
     paddingLeft: spacing[12],
     paddingRight: spacing[4],
     paddingVertical: spacing[4],
-    borderRadius: radius[8],
+    borderRadius: radius[12],
     borderWidth: 1,
     marginBottom: spacing[12],
   },

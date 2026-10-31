@@ -16,11 +16,11 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { useAuth } from '@/features/auth';
 import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
-import { spacing } from '@/theme/tokens';
+import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export default function BuscarScreen() {
   const { user } = useAuth();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   const isFocused = useIsFocused();
   const queryClient = useQueryClient();
   const [inputText, setInputText] = useState('');
@@ -116,12 +116,13 @@ export default function BuscarScreen() {
       >
         <AppText>{liveAnnouncement}</AppText>
       </View>
+
       {/* Header Greeting */}
       <View style={styles.header}>
         <AppText variant="title" weight="bold" style={styles.greetingTitle}>
           Hola, {greetingName}
         </AppText>
-        <AppText variant="body" muted style={styles.subtitle}>
+        <AppText variant="caption" muted>
           Consulta el estado de tu vehículo en tiempo real
         </AppText>
       </View>
@@ -147,7 +148,9 @@ export default function BuscarScreen() {
       {/* 2. 404 Not Found State */}
       {searchedPlate && isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
-          <Icon name="Search" size={36} color={colors.textMuted} style={styles.stateIcon} />
+          <View style={[styles.iconCircle, { backgroundColor: colors.surfaceAlt }]}>
+            <Icon name="Search" size={26} color={colors.textMuted} />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.notFoundMessage}>
             No hay un carro lavándose con esta placa
           </AppText>
@@ -164,7 +167,14 @@ export default function BuscarScreen() {
       {/* 3. Network Error WITHOUT data */}
       {searchedPlate && isNetworkError && !data && !isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
-          <Icon name="WifiOff" size={36} color={colors.danger} style={styles.stateIcon} />
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: withAlpha(colors.danger, isDark ? 0.18 : 0.1) },
+            ]}
+          >
+            <Icon name="WifiOff" size={26} color={colors.danger} />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             Sin conexión con el servidor
           </AppText>
@@ -185,7 +195,14 @@ export default function BuscarScreen() {
       {/* 4. 429 Rate Limited WITHOUT data */}
       {searchedPlate && isRateLimited && !data && !isNotFound && (
         <Card variant="outlined" style={styles.stateCard}>
-          <Icon name="Clock" size={36} color={colors.warning} style={styles.stateIcon} />
+          <View
+            style={[
+              styles.iconCircle,
+              { backgroundColor: withAlpha(colors.warning, isDark ? 0.18 : 0.1) },
+            ]}
+          >
+            <Icon name="Clock" size={26} color={colors.warning} />
+          </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             Límite de consultas alcanzado
           </AppText>
@@ -215,8 +232,8 @@ export default function BuscarScreen() {
               style={[
                 styles.offlineBanner,
                 {
-                  backgroundColor: colors.surfaceAlt,
-                  borderColor: colors.warning,
+                  backgroundColor: withAlpha(colors.warning, isDark ? 0.14 : 0.08),
+                  borderColor: withAlpha(colors.warning, isDark ? 0.4 : 0.3),
                 },
               ]}
               accessibilityRole="alert"
@@ -232,7 +249,7 @@ export default function BuscarScreen() {
 
           <Button
             title="Nueva búsqueda"
-            variant="ghost"
+            variant="secondary"
             onPress={handleNewSearch}
             style={styles.successNewSearchButton}
             accessibilityLabel="Buscar otra placa"
@@ -245,20 +262,16 @@ export default function BuscarScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: spacing[16],
+    paddingTop: spacing[12],
     paddingBottom: spacing[32],
   },
   header: {
-    marginTop: spacing[8],
-    marginBottom: spacing[20],
+    marginBottom: spacing[16],
   },
   greetingTitle: {
     fontSize: 26,
     lineHeight: 32,
     marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 14,
   },
   stateCard: {
     alignItems: 'center',
@@ -269,6 +282,14 @@ const styles = StyleSheet.create({
   },
   stateIcon: {
     marginBottom: spacing[16],
+  },
+  iconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[12],
   },
   loadingMessage: {
     textAlign: 'center',
@@ -298,7 +319,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: spacing[8],
     paddingHorizontal: spacing[12],
-    borderRadius: 8,
+    borderRadius: radius[12],
     borderWidth: 1,
     marginBottom: spacing[12],
   },
@@ -311,6 +332,7 @@ const styles = StyleSheet.create({
   successNewSearchButton: {
     alignSelf: 'center',
     marginTop: spacing[4],
+    minWidth: 180,
   },
   srOnly: {
     position: 'absolute',

@@ -166,6 +166,7 @@ const styles = StyleSheet.create({
     marginRight: spacing[8],
   },
   plateText: {
+    fontSize: 19,
     letterSpacing: 0.6,
   },
   vehicleText: {
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   activeDetailsBlock: {
-    marginTop: spacing[8],
+    marginTop: spacing[12],
   },
   progressBar: {
     marginBottom: spacing[8],
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   nullMessageText: {
-    marginTop: spacing[4],
+    marginTop: spacing[8],
   },
   trashButton: {
     minWidth: 48,

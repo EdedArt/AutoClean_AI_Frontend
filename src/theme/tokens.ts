@@ -73,9 +73,9 @@ export const darkPalette: ColorPalette = {
   danger: '#F87171',
   warning: '#FBBF24',
   info: '#38BDF8',
-  disabledBackground: '#1E293B',
-  disabledText: '#8295AB',
-  disabledBorder: '#24324A',
+  disabledBackground: '#151F32',
+  disabledText: '#5B6E86',
+  disabledBorder: '#1C2940',
   readOnlyBackground: '#17233A',
 };
 
