@@ -18,25 +18,24 @@ export default function RootIndex() {
   const [retrying, setRetrying] = useState(false);
   const [isConnectingSlow, setIsConnectingSlow] = useState(false);
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
+  const isPendingConnection = state === 'loading' || retrying;
 
-    if (state === 'loading' || retrying) {
-      timer = setTimeout(() => {
-        if (!hasReachedBackend()) {
-          setIsConnectingSlow(true);
-        }
-      }, 5000);
-    } else {
-      setIsConnectingSlow(false);
+  useEffect(() => {
+    if (!isPendingConnection) {
+      return;
     }
 
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
+    const timer = setTimeout(() => {
+      if (!hasReachedBackend()) {
+        setIsConnectingSlow(true);
       }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      setIsConnectingSlow(false);
     };
-  }, [state, retrying]);
+  }, [isPendingConnection]);
 
   if (state === 'loading') {
     if (!isConnectingSlow) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 import { AppText } from '@/components/AppText';
@@ -16,7 +16,7 @@ export const CONNECTING_SERVER_MESSAGE =
 export function ConnectingBanner({ style }: ConnectingBannerProps) {
   const { colors, isDark } = useTheme();
   const [reduceMotion, setReduceMotion] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [fadeAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     let mounted = true;
