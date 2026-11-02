@@ -1,11 +1,12 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
 
-import { ApiError } from '@/api/client';
+import { ApiError, hasReachedBackend } from '@/api/client';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
+import { ConnectingBanner } from '@/components/ConnectingBanner';
 import { Icon } from '@/components/Icon';
 import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
@@ -24,11 +25,21 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isConnectingSlow, setIsConnectingSlow] = useState(false);
 
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
   const passwordRef = useRef<TextFieldInstance>(null);
+  const slowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+      }
+    };
+  }, []);
 
   const validate = (
     currentEmail: string,
@@ -90,6 +101,12 @@ export default function LoginScreen() {
   const handleSubmit = async () => {
     setSubmitted(true);
     setGeneralError(null);
+    setIsConnectingSlow(false);
+
+    if (slowTimerRef.current) {
+      clearTimeout(slowTimerRef.current);
+      slowTimerRef.current = null;
+    }
 
     const { isValid, errors, data } = validate(email, password);
     setFieldErrors(errors);
@@ -99,12 +116,21 @@ export default function LoginScreen() {
     }
 
     setLoading(true);
+
+    slowTimerRef.current = setTimeout(() => {
+      if (!hasReachedBackend()) {
+        setIsConnectingSlow(true);
+      }
+    }, 5000);
+
     try {
       await signIn({
         email: data.email,
         password: data.password,
       });
+      setIsConnectingSlow(false);
     } catch (err: unknown) {
+      setIsConnectingSlow(false);
       setLoading(false);
       if (err instanceof ApiError) {
         if (err.code === 'INVALID_CREDENTIALS' || err.status === 401) {
@@ -124,6 +150,11 @@ export default function LoginScreen() {
       }
 
       setGeneralError('Sin conexión con el servidor. Revisa tu red e inténtalo de nuevo');
+    } finally {
+      if (slowTimerRef.current) {
+        clearTimeout(slowTimerRef.current);
+        slowTimerRef.current = null;
+      }
     }
   };
 
@@ -140,7 +171,11 @@ export default function LoginScreen() {
       </View>
 
       <Card variant="elevated" style={styles.formCard}>
-        {generalError && (
+        {isConnectingSlow ? (
+          <View style={styles.bannerWrapper}>
+            <ConnectingBanner />
+          </View>
+        ) : generalError ? (
           <View
             style={[
               styles.alertBox,
@@ -156,7 +191,7 @@ export default function LoginScreen() {
               {generalError}
             </AppText>
           </View>
-        )}
+        ) : null}
 
         <TextField
           label="Correo electrónico"
@@ -243,6 +278,10 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: spacing[20],
     marginBottom: spacing[16],
+  },
+  bannerWrapper: {
+    marginBottom: spacing[16],
+    width: '100%',
   },
   alertBox: {
     flexDirection: 'row',

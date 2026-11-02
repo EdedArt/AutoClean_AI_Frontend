@@ -39,6 +39,9 @@
       ],
       "expo-secure-store"
     ],
+    "extra": {
+      "apiUrl": "https://autoclean-ai-backend.onrender.com"
+    },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

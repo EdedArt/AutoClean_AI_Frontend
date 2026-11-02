@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
 
+import { hasReachedBackend } from '@/api/client';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
+import { ConnectingBanner } from '@/components/ConnectingBanner';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { useAuth } from '@/features/auth';
@@ -14,10 +16,26 @@ export default function RootIndex() {
   const { state, user, retry } = useAuth();
   const { colors } = useTheme();
   const [retrying, setRetrying] = useState(false);
+  const [isConnectingSlow, setIsConnectingSlow] = useState(false);
 
-  if (state === 'loading') {
-    return null;
-  }
+  const isPendingConnection = state === 'loading' || retrying;
+
+  useEffect(() => {
+    if (!isPendingConnection) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      if (!hasReachedBackend()) {
+        setIsConnectingSlow(true);
+      }
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      setIsConnectingSlow(false);
+    };
+  }, [isPendingConnection]);
 
   if (state === 'unauthenticated') {
     return <Redirect href="/(auth)/login" />;
@@ -30,7 +48,7 @@ export default function RootIndex() {
     return <Redirect href="/(cliente)/buscar" />;
   }
 
-  // state === 'offline'
+  // state is either 'loading' (session being restored) or 'offline'
   const handleRetry = async () => {
     setRetrying(true);
     try {
@@ -44,22 +62,39 @@ export default function RootIndex() {
     <ScreenContainer contentContainerStyle={styles.offlineContainer}>
       <View style={styles.offlineContent}>
         <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceAlt }]}>
-          <Icon name="WifiOff" size={48} color={colors.textMuted} />
+          {state === 'loading' && !isConnectingSlow ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : (
+            <Icon
+              name={isConnectingSlow ? 'Clock' : 'WifiOff'}
+              size={48}
+              color={isConnectingSlow ? colors.info : colors.textMuted}
+            />
+          )}
         </View>
 
-        <AppText variant="title" style={styles.offlineTitle}>
-          Sin conexión con el servidor
-        </AppText>
+        {isConnectingSlow ? (
+          <View style={styles.bannerWrapper}>
+            <ConnectingBanner />
+          </View>
+        ) : state === 'loading' ? null : (
+          <>
+            <AppText variant="title" style={styles.offlineTitle}>
+              Sin conexión con el servidor
+            </AppText>
 
-        <AppText variant="body" color="textMuted" style={styles.offlineSubtitle}>
-          Verifica tu conexión a la red local o internet e inténtalo de nuevo.
-        </AppText>
+            <AppText variant="body" color="textMuted" style={styles.offlineSubtitle}>
+              Verifica tu conexión a la red local o internet e inténtalo de nuevo.
+            </AppText>
+          </>
+        )}
 
         <Button
-          title="Reintentar"
+          title={isPendingConnection ? 'Conectando…' : 'Reintentar'}
           variant="primary"
           size="lg"
-          loading={retrying}
+          loading={isPendingConnection}
+          disabled={isPendingConnection}
           onPress={handleRetry}
           style={styles.retryButton}
         />
@@ -86,6 +121,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing[20],
+  },
+  bannerWrapper: {
+    width: '100%',
+    marginBottom: spacing[24],
   },
   offlineTitle: {
     textAlign: 'center',

@@ -26,7 +26,7 @@ function RootNavigator() {
     Inter_700Bold,
   });
 
-  const isReady = fontsLoaded && isThemeReady && authState !== 'loading';
+  const isReady = fontsLoaded && isThemeReady;
 
   useEffect(() => {
     if (authState === 'unauthenticated') {

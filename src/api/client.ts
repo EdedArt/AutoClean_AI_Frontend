@@ -37,7 +37,43 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): voi
   unauthorizedHandler = handler;
 }
 
-const DEFAULT_TIMEOUT_MS = 10000;
+let hasReachedBackendThisSession = false;
+
+export function hasReachedBackend(): boolean {
+  return hasReachedBackendThisSession;
+}
+
+export function resetBackendSession(): void {
+  hasReachedBackendThisSession = false;
+}
+
+function isRetryableColdStartRequest(method: string, endpoint: string, body?: unknown): boolean {
+  // Never retry file uploads or FormData requests
+  if (body instanceof FormData) {
+    return false;
+  }
+  const upperMethod = method.toUpperCase();
+  // Safe idempotent methods
+  if (upperMethod === 'GET' || upperMethod === 'HEAD' || upperMethod === 'OPTIONS') {
+    return true;
+  }
+  // Login is pure credential authentication, safe and non-state-changing to retry on cold start
+  if (
+    upperMethod === 'POST' &&
+    (endpoint.endsWith('/auth/login') || endpoint.includes('/auth/login'))
+  ) {
+    return true;
+  }
+  // All other POST, PUT, PATCH, DELETE are state-changing and must never be retried
+  return false;
+}
+
+export const COLD_START_TIMEOUT_MS = 75000;
+export const STANDARD_TIMEOUT_MS = 10000;
+
+export function getDefaultTimeoutMs(): number {
+  return hasReachedBackendThisSession ? STANDARD_TIMEOUT_MS : COLD_START_TIMEOUT_MS;
+}
 
 interface RawHttpResult {
   ok: boolean;
@@ -113,6 +149,8 @@ function sendFormDataWithXhr(
       }
       settled = true;
       cleanupExternalAbort();
+
+      hasReachedBackendThisSession = true;
 
       const contentType = xhr.getResponseHeader('content-type') ?? '';
       resolve({
@@ -247,8 +285,9 @@ function parseAndHandleResult<T>(
   return data as T;
 }
 
-export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { token, timeoutMs = DEFAULT_TIMEOUT_MS, headers, body, ...customOptions } = options;
+async function executeRawRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const defaultTimeout = getDefaultTimeoutMs();
+  const { token, timeoutMs = defaultTimeout, headers, body, ...customOptions } = options;
 
   const url =
     endpoint.startsWith('http://') || endpoint.startsWith('https://')
@@ -312,6 +351,7 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
       body: serializedBody,
       signal: controller.signal,
     });
+    hasReachedBackendThisSession = true;
   } catch (error: unknown) {
     clearTimeout(timeoutId);
     const err = error as { name?: string; message?: string };
@@ -363,6 +403,27 @@ export async function apiRequest<T>(endpoint: string, options: RequestOptions = 
     token,
     requestHeaders.Authorization,
   );
+}
+
+export async function apiRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const method = (options.method ?? 'GET').toUpperCase();
+  const canRetry =
+    !hasReachedBackendThisSession && isRetryableColdStartRequest(method, endpoint, options.body);
+
+  try {
+    return await executeRawRequest<T>(endpoint, options);
+  } catch (error: unknown) {
+    if (
+      canRetry &&
+      !hasReachedBackendThisSession &&
+      error instanceof ApiError &&
+      (error.code === 'REQUEST_TIMEOUT' || error.code === 'NETWORK_ERROR')
+    ) {
+      // Exactly one automatic retry on cold start when backend has not yet been reached
+      return await executeRawRequest<T>(endpoint, options);
+    }
+    throw error;
+  }
 }
 
 export const apiClient = {
