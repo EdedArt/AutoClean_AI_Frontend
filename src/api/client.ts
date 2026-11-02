@@ -68,7 +68,12 @@ function isRetryableColdStartRequest(method: string, endpoint: string, body?: un
   return false;
 }
 
-const DEFAULT_TIMEOUT_MS = 75000;
+export const COLD_START_TIMEOUT_MS = 75000;
+export const STANDARD_TIMEOUT_MS = 10000;
+
+export function getDefaultTimeoutMs(): number {
+  return hasReachedBackendThisSession ? STANDARD_TIMEOUT_MS : COLD_START_TIMEOUT_MS;
+}
 
 interface RawHttpResult {
   ok: boolean;
@@ -281,7 +286,8 @@ function parseAndHandleResult<T>(
 }
 
 async function executeRawRequest<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { token, timeoutMs = DEFAULT_TIMEOUT_MS, headers, body, ...customOptions } = options;
+  const defaultTimeout = getDefaultTimeoutMs();
+  const { token, timeoutMs = defaultTimeout, headers, body, ...customOptions } = options;
 
   const url =
     endpoint.startsWith('http://') || endpoint.startsWith('https://')
