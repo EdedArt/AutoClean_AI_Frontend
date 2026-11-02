@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
 
+import { hasReachedBackend } from '@/api/client';
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
+import { ConnectingBanner } from '@/components/ConnectingBanner';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { useAuth } from '@/features/auth';
@@ -14,9 +16,46 @@ export default function RootIndex() {
   const { state, user, retry } = useAuth();
   const { colors } = useTheme();
   const [retrying, setRetrying] = useState(false);
+  const [isConnectingSlow, setIsConnectingSlow] = useState(false);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    if (state === 'loading' || retrying) {
+      timer = setTimeout(() => {
+        if (!hasReachedBackend()) {
+          setIsConnectingSlow(true);
+        }
+      }, 5000);
+    } else {
+      setIsConnectingSlow(false);
+    }
+
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [state, retrying]);
 
   if (state === 'loading') {
-    return null;
+    if (!isConnectingSlow) {
+      return null;
+    }
+
+    return (
+      <ScreenContainer contentContainerStyle={styles.offlineContainer}>
+        <View style={styles.offlineContent}>
+          <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceAlt }]}>
+            <Icon name="Clock" size={48} color={colors.info} />
+          </View>
+
+          <View style={styles.bannerWrapper}>
+            <ConnectingBanner />
+          </View>
+        </View>
+      </ScreenContainer>
+    );
   }
 
   if (state === 'unauthenticated') {
@@ -44,22 +83,35 @@ export default function RootIndex() {
     <ScreenContainer contentContainerStyle={styles.offlineContainer}>
       <View style={styles.offlineContent}>
         <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceAlt }]}>
-          <Icon name="WifiOff" size={48} color={colors.textMuted} />
+          <Icon
+            name={isConnectingSlow ? 'Clock' : 'WifiOff'}
+            size={48}
+            color={isConnectingSlow ? colors.info : colors.textMuted}
+          />
         </View>
 
-        <AppText variant="title" style={styles.offlineTitle}>
-          Sin conexión con el servidor
-        </AppText>
+        {isConnectingSlow ? (
+          <View style={styles.bannerWrapper}>
+            <ConnectingBanner />
+          </View>
+        ) : (
+          <>
+            <AppText variant="title" style={styles.offlineTitle}>
+              Sin conexión con el servidor
+            </AppText>
 
-        <AppText variant="body" color="textMuted" style={styles.offlineSubtitle}>
-          Verifica tu conexión a la red local o internet e inténtalo de nuevo.
-        </AppText>
+            <AppText variant="body" color="textMuted" style={styles.offlineSubtitle}>
+              Verifica tu conexión a la red local o internet e inténtalo de nuevo.
+            </AppText>
+          </>
+        )}
 
         <Button
-          title="Reintentar"
+          title={isConnectingSlow ? 'Conectando…' : 'Reintentar'}
           variant="primary"
           size="lg"
           loading={retrying}
+          disabled={retrying}
           onPress={handleRetry}
           style={styles.retryButton}
         />
@@ -86,6 +138,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing[20],
+  },
+  bannerWrapper: {
+    width: '100%',
+    marginBottom: spacing[24],
   },
   offlineTitle: {
     textAlign: 'center',
