@@ -66,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setState('authenticated');
     } catch (error) {
       if (error instanceof ApiError) {
-        if (error.code === 'NETWORK_ERROR') {
+        if (error.code === 'NETWORK_ERROR' || error.code === 'REQUEST_TIMEOUT') {
           // Network error: preserve token, set offline state
           setState('offline');
           return;
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           return;
         }
         if (error instanceof ApiError) {
-          if (error.code === 'NETWORK_ERROR') {
+          if (error.code === 'NETWORK_ERROR' || error.code === 'REQUEST_TIMEOUT') {
             setState('offline');
             return;
           }
