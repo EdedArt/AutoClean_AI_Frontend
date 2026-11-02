@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
 
 import { hasReachedBackend } from '@/api/client';
@@ -37,26 +37,6 @@ export default function RootIndex() {
     };
   }, [isPendingConnection]);
 
-  if (state === 'loading') {
-    if (!isConnectingSlow) {
-      return null;
-    }
-
-    return (
-      <ScreenContainer contentContainerStyle={styles.offlineContainer}>
-        <View style={styles.offlineContent}>
-          <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceAlt }]}>
-            <Icon name="Clock" size={48} color={colors.info} />
-          </View>
-
-          <View style={styles.bannerWrapper}>
-            <ConnectingBanner />
-          </View>
-        </View>
-      </ScreenContainer>
-    );
-  }
-
   if (state === 'unauthenticated') {
     return <Redirect href="/(auth)/login" />;
   }
@@ -68,7 +48,7 @@ export default function RootIndex() {
     return <Redirect href="/(cliente)/buscar" />;
   }
 
-  // state === 'offline'
+  // state is either 'loading' (session being restored) or 'offline'
   const handleRetry = async () => {
     setRetrying(true);
     try {
@@ -82,18 +62,22 @@ export default function RootIndex() {
     <ScreenContainer contentContainerStyle={styles.offlineContainer}>
       <View style={styles.offlineContent}>
         <View style={[styles.iconWrapper, { backgroundColor: colors.surfaceAlt }]}>
-          <Icon
-            name={isConnectingSlow ? 'Clock' : 'WifiOff'}
-            size={48}
-            color={isConnectingSlow ? colors.info : colors.textMuted}
-          />
+          {state === 'loading' && !isConnectingSlow ? (
+            <ActivityIndicator size="large" color={colors.primary} />
+          ) : (
+            <Icon
+              name={isConnectingSlow ? 'Clock' : 'WifiOff'}
+              size={48}
+              color={isConnectingSlow ? colors.info : colors.textMuted}
+            />
+          )}
         </View>
 
         {isConnectingSlow ? (
           <View style={styles.bannerWrapper}>
             <ConnectingBanner />
           </View>
-        ) : (
+        ) : state === 'loading' ? null : (
           <>
             <AppText variant="title" style={styles.offlineTitle}>
               Sin conexión con el servidor
@@ -106,11 +90,11 @@ export default function RootIndex() {
         )}
 
         <Button
-          title={isConnectingSlow ? 'Conectando…' : 'Reintentar'}
+          title={isPendingConnection ? 'Conectando…' : 'Reintentar'}
           variant="primary"
           size="lg"
-          loading={retrying}
-          disabled={retrying}
+          loading={isPendingConnection}
+          disabled={isPendingConnection}
           onPress={handleRetry}
           style={styles.retryButton}
         />
