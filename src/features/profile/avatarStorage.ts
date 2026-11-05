@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Directory, File, Paths } from 'expo-file-system';
 
 export const AVATAR_STORAGE_PREFIX = 'autoclean.avatar';
@@ -149,4 +150,67 @@ export async function persistAvatarFile(
   } catch {
     return null;
   }
+}
+
+export async function resolveOrMigrateAvatarUri(
+  userId: number | string | null | undefined,
+  storedUri: string,
+  storageKey: string,
+): Promise<string | null> {
+  const trimmed = storedUri.trim();
+  if (trimmed.length === 0) {
+    try {
+      await AsyncStorage.removeItem(storageKey);
+    } catch {
+      // Ignore storage error
+    }
+    return null;
+  }
+
+  // Case 1: Stored path is already inside the persistent document directory
+  if (isPersistentAvatarPath(trimmed)) {
+    try {
+      const file = new File(trimmed);
+      if (file.exists) {
+        return trimmed;
+      }
+    } catch {
+      // Ignore file check error
+    }
+
+    // Persistent path does not exist on disk: clear stored key and fall back to initials
+    try {
+      await AsyncStorage.removeItem(storageKey);
+    } catch {
+      // Ignore storage error
+    }
+    return null;
+  }
+
+  // Case 2 & 3: Stored path is a legacy cache path
+  try {
+    const cacheFile = new File(trimmed);
+    if (cacheFile.exists) {
+      // Case 2: Cache path still exists -> copy to persistent storage, update stored value, use new path
+      const persistentUri = await persistAvatarFile(userId, trimmed);
+      if (persistentUri) {
+        try {
+          await AsyncStorage.setItem(storageKey, persistentUri);
+        } catch {
+          // Ignore storage error
+        }
+        return persistentUri;
+      }
+    }
+  } catch {
+    // Ignore file or copy error
+  }
+
+  // Case 3: Cache path no longer exists (or copy failed) -> clear stored value and fall back to initials
+  try {
+    await AsyncStorage.removeItem(storageKey);
+  } catch {
+    // Ignore storage error
+  }
+  return null;
 }
