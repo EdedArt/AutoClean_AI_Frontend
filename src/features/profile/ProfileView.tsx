@@ -14,7 +14,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRoleLabel, useAuth } from '@/features/auth';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
-import { persistAvatarFile } from './avatarStorage';
+import { deleteAvatarFiles, persistAvatarFile, resolveOrMigrateAvatarUri } from './avatarStorage';
 
 const AVATAR_STORAGE_PREFIX = 'autoclean.avatar';
 
@@ -57,9 +57,18 @@ export function ProfileView() {
     let isMounted = true;
 
     AsyncStorage.getItem(storageKey)
-      .then((savedUri) => {
+      .then(async (savedUri) => {
+        if (!isMounted) {
+          return;
+        }
+        if (!savedUri || savedUri.trim().length === 0) {
+          setAvatarUri(null);
+          return;
+        }
+
+        const resolved = await resolveOrMigrateAvatarUri(user?.id, savedUri, storageKey);
         if (isMounted) {
-          setAvatarUri(savedUri && savedUri.trim().length > 0 ? savedUri : null);
+          setAvatarUri(resolved);
         }
       })
       .catch(() => {
@@ -71,7 +80,7 @@ export function ProfileView() {
     return () => {
       isMounted = false;
     };
-  }, [storageKey]);
+  }, [storageKey, user?.id]);
 
   const handlePickFromGallery = async () => {
     try {
@@ -115,7 +124,9 @@ export function ProfileView() {
   };
 
   const handleRemovePhoto = async () => {
+    const currentUri = avatarUri;
     setAvatarUri(null);
+    await deleteAvatarFiles(user?.id, currentUri);
     try {
       await AsyncStorage.removeItem(storageKey);
     } catch {
