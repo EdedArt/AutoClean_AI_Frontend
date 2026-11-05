@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRoleLabel, useAuth } from '@/features/auth';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
+import { deleteAvatarFiles, persistAvatarFile, resolveOrMigrateAvatarUri } from './avatarStorage';
 
 const AVATAR_STORAGE_PREFIX = 'autoclean.avatar';
 
@@ -56,9 +57,18 @@ export function ProfileView() {
     let isMounted = true;
 
     AsyncStorage.getItem(storageKey)
-      .then((savedUri) => {
+      .then(async (savedUri) => {
+        if (!isMounted) {
+          return;
+        }
+        if (!savedUri || savedUri.trim().length === 0) {
+          setAvatarUri(null);
+          return;
+        }
+
+        const resolved = await resolveOrMigrateAvatarUri(user?.id, savedUri, storageKey);
         if (isMounted) {
-          setAvatarUri(savedUri && savedUri.trim().length > 0 ? savedUri : null);
+          setAvatarUri(resolved);
         }
       })
       .catch(() => {
@@ -70,7 +80,7 @@ export function ProfileView() {
     return () => {
       isMounted = false;
     };
-  }, [storageKey]);
+  }, [storageKey, user?.id]);
 
   const handlePickFromGallery = async () => {
     try {
@@ -92,11 +102,20 @@ export function ProfileView() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedUri = result.assets[0].uri;
-        setAvatarUri(selectedUri);
         try {
-          await AsyncStorage.setItem(storageKey, selectedUri);
+          const persistentUri = await persistAvatarFile(user?.id, selectedUri, avatarUri);
+          if (persistentUri) {
+            setAvatarUri(persistentUri);
+            try {
+              await AsyncStorage.setItem(storageKey, persistentUri);
+            } catch {
+              // Ignore local storage write failure
+            }
+          } else {
+            Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
+          }
         } catch {
-          // Ignore local storage write failure
+          Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
         }
       }
     } catch {
@@ -105,7 +124,9 @@ export function ProfileView() {
   };
 
   const handleRemovePhoto = async () => {
+    const currentUri = avatarUri;
     setAvatarUri(null);
+    await deleteAvatarFiles(user?.id, currentUri);
     try {
       await AsyncStorage.removeItem(storageKey);
     } catch {
