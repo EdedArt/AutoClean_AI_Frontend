@@ -14,6 +14,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { getRoleLabel, useAuth } from '@/features/auth';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
+import { persistAvatarFile } from './avatarStorage';
 
 const AVATAR_STORAGE_PREFIX = 'autoclean.avatar';
 
@@ -92,11 +93,20 @@ export function ProfileView() {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selectedUri = result.assets[0].uri;
-        setAvatarUri(selectedUri);
         try {
-          await AsyncStorage.setItem(storageKey, selectedUri);
+          const persistentUri = await persistAvatarFile(user?.id, selectedUri, avatarUri);
+          if (persistentUri) {
+            setAvatarUri(persistentUri);
+            try {
+              await AsyncStorage.setItem(storageKey, persistentUri);
+            } catch {
+              // Ignore local storage write failure
+            }
+          } else {
+            Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
+          }
         } catch {
-          // Ignore local storage write failure
+          Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
         }
       }
     } catch {
