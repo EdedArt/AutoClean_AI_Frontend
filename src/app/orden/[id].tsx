@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { Redirect, router, useIsFocused, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -29,12 +30,12 @@ import {
   useMarkOrderReady,
   useUpdateOrderPhase,
 } from '@/features/dueno/useOrderMutations';
-import { getPhase } from '@/lib/phases';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing, WashPhaseCode, withAlpha } from '@/theme/tokens';
 
 export default function OrderDetailScreen() {
+  const { t } = useTranslation();
   const { state: authState, user } = useAuth();
   const isFocused = useIsFocused();
   const { id } = useLocalSearchParams<{ id?: string | string[] }>();
@@ -135,7 +136,7 @@ export default function OrderDetailScreen() {
       {
         onSuccess: (updated) => {
           setPendingManualPhase(null);
-          const phaseLabel = getPhase(updated.faseActual)?.label ?? updated.faseActual;
+          const phaseLabel = t(`phases.${updated.faseActual}`);
           setLiveAnnouncement(`Fase actualizada manualmente a ${phaseLabel}`);
         },
         onError: (err) => {
@@ -160,12 +161,12 @@ export default function OrderDetailScreen() {
       : `#${order.id}`;
 
     Alert.alert(
-      'Entregar vehículo',
-      `¿Confirmas la entrega del vehículo con placa ${placaFormatted} al cliente?`,
+      t('orderDetail.deliverConfirmTitle'),
+      t('orderDetail.deliverConfirmMessage', { placa: placaFormatted }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Entregar',
+          text: t('orderDetail.deliverButton'),
           style: 'default',
           onPress: () => {
             setActionError(null);
@@ -173,14 +174,14 @@ export default function OrderDetailScreen() {
               onSuccess: () => {
                 setDeliveredPlaca(placaFormatted);
                 setLiveAnnouncement(
-                  `Vehículo ${placaFormatted} entregado. Salió de la lista de lavado activo.`,
+                  t('orderDetail.deliveredMessage', { placa: placaFormatted }),
                 );
               },
               onError: (err) => {
                 if (err instanceof ApiError) {
                   setActionError(err.message);
                 } else {
-                  setActionError('No se pudo registrar la entrega del vehículo.');
+                  setActionError(t('common.error'));
                 }
               },
             });
@@ -216,14 +217,13 @@ export default function OrderDetailScreen() {
             <Icon name="CircleCheck" size={36} color={colors.accent} />
           </View>
           <AppText variant="title" weight="bold" style={styles.stateTitle}>
-            Vehículo entregado
+            {t('orderDetail.deliveredTitle')}
           </AppText>
           <AppText variant="body" muted style={styles.stateDescription}>
-            El vehículo con placa {deliveredPlaca} fue entregado al cliente y salió de la lista de
-            órdenes activas.
+            {t('orderDetail.deliveredMessage', { placa: deliveredPlaca })}
           </AppText>
           <Button
-            title="Volver al panel"
+            title={t('orderDetail.backToPanel')}
             leftIcon="LayoutDashboard"
             onPress={() => router.replace('/(dueno)/panel')}
             style={styles.stateButton}
@@ -263,7 +263,7 @@ export default function OrderDetailScreen() {
           onPress={handleBackToPanel}
           accessible
           accessibilityRole="button"
-          accessibilityLabel="Volver al panel de órdenes"
+          accessibilityLabel={t('orderDetail.backToPanel')}
           style={({ pressed }) => [
             styles.backButton,
             {
@@ -275,7 +275,7 @@ export default function OrderDetailScreen() {
         >
           <Icon name="ArrowLeft" size={18} color={colors.text} style={styles.backIcon} />
           <AppText variant="body" weight="semiBold">
-            Panel
+            {t('common.panel')}
           </AppText>
         </Pressable>
       </View>
@@ -295,7 +295,7 @@ export default function OrderDetailScreen() {
         >
           <Icon name="WifiOff" size={16} color={colors.warning} style={styles.bannerIcon} />
           <AppText variant="caption" style={{ color: colors.warning }}>
-            Sin conexión. Mostrando el último estado.
+            {t('common.offlineShowingLast')}
           </AppText>
         </View>
       ) : null}
@@ -305,7 +305,7 @@ export default function OrderDetailScreen() {
         <Card variant="outlined" style={styles.stateCard}>
           <ActivityIndicator size="large" color={colors.primary} style={styles.stateIcon} />
           <AppText variant="body" muted>
-            Cargando detalle de la orden...
+            {t('orderDetail.loadingOrder')}
           </AppText>
         </Card>
       ) : null}
@@ -322,13 +322,13 @@ export default function OrderDetailScreen() {
             <Icon name="WifiOff" size={26} color={colors.danger} />
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-            No se pudo cargar la orden
+            {t('orderDetail.loadOrderError')}
           </AppText>
           <AppText variant="caption" muted style={styles.stateDescription}>
-            Verifica tu conexión con el servidor e inténtalo nuevamente.
+            {t('common.noConnectionSubtitle')}
           </AppText>
           <Button
-            title="Reintentar"
+            title={t('common.retry')}
             leftIcon="RefreshCw"
             onPress={() => {
               void handleRefresh();
@@ -345,13 +345,13 @@ export default function OrderDetailScreen() {
             <Icon name="Car" size={26} color={colors.textMuted} />
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-            Orden no disponible en lavado activo
+            {t('orderDetail.orderNotAvailable')}
           </AppText>
           <AppText variant="caption" muted style={styles.stateDescription}>
-            Esta orden ya fue entregada o no se encuentra en la lista de lavado activo.
+            {t('orderDetail.orderNotAvailableDesc')}
           </AppText>
           <Button
-            title="Volver al panel"
+            title={t('orderDetail.backToPanel')}
             variant="secondary"
             onPress={handleBackToPanel}
             style={styles.stateButton}
@@ -369,7 +369,7 @@ export default function OrderDetailScreen() {
                 <AppText variant="display" weight="bold" style={styles.plateText}>
                   {order.vehicle?.placa
                     ? formatPlateInput(order.vehicle.placa)
-                    : `Orden #${order.id}`}
+                    : `#${order.id}`}
                 </AppText>
                 {order.vehicle ? (
                   <AppText variant="body" muted style={styles.vehicleSubtitle}>
@@ -397,7 +397,7 @@ export default function OrderDetailScreen() {
                     ]}
                   >
                     <AppText variant="caption" muted>
-                      Bahía:
+                      {t('ownerPanel.bay')}:
                     </AppText>
                     <AppText variant="caption" weight="semiBold" style={styles.metaValue}>
                       #{order.bay.numero}
@@ -413,7 +413,7 @@ export default function OrderDetailScreen() {
                     ]}
                   >
                     <AppText variant="caption" muted>
-                      Paquete:
+                      {t('orderDetail.package')}:
                     </AppText>
                     <AppText variant="caption" weight="semiBold" style={styles.metaValue}>
                       {activePackage.nombre}
@@ -429,10 +429,16 @@ export default function OrderDetailScreen() {
                     ]}
                   >
                     <AppText variant="caption" muted>
-                      Suciedad:
+                      {t('orderDetail.dirt')}:
                     </AppText>
                     <AppText variant="caption" weight="semiBold" style={styles.metaValue}>
-                      {order.vehicle.nivelSuciedad}
+                      {order.vehicle.nivelSuciedad === 'Leve'
+                        ? t('registerVehicle.dirtLight')
+                        : order.vehicle.nivelSuciedad === 'Moderado'
+                          ? t('registerVehicle.dirtModerate')
+                          : order.vehicle.nivelSuciedad === 'Severo'
+                            ? t('registerVehicle.dirtSevere')
+                            : order.vehicle.nivelSuciedad}
                     </AppText>
                   </View>
                 ) : null}
@@ -497,11 +503,10 @@ export default function OrderDetailScreen() {
                 ]}
               >
                 <AppText variant="caption" muted style={styles.readyHint}>
-                  El vehículo está en espera. Márcalo como listo para iniciar el lavado y habilitar
-                  el análisis con IA.
+                  {t('orderDetail.markReadyHint')}
                 </AppText>
                 <Button
-                  title="Marcar listo para lavar"
+                  title={t('orderDetail.markReadyButton')}
                   leftIcon="Check"
                   fullWidth
                   onPress={handleMarkReady}
@@ -588,24 +593,24 @@ export default function OrderDetailScreen() {
               </View>
               <View style={styles.deliverTextCol}>
                 <AppText variant="subtitle" weight="semiBold">
-                  Entrega del vehículo
+                  {t('orderDetail.delivery')}
                 </AppText>
                 <AppText variant="caption" muted style={styles.deliverSubtitle}>
                   {order.faseActual === 'LISTO'
-                    ? 'El lavado ha finalizado (100%). Ya puedes entregar el vehículo al cliente.'
-                    : 'La entrega se habilitará únicamente cuando el vehículo alcance la fase Listo.'}
+                    ? t('orderDetail.deliveryReady')
+                    : t('orderDetail.deliveryDisabled')}
                 </AppText>
               </View>
             </View>
             <Button
-              title="Entregar"
+              title={t('orderDetail.deliverButton')}
               size="lg"
               leftIcon="CircleCheck"
               fullWidth
               disabled={order.faseActual !== 'LISTO' || isDelivering || isAiAnalyzing}
               loading={isDelivering}
               onPress={handleConfirmDeliver}
-              accessibilityLabel="Entregar vehículo terminado al cliente"
+              accessibilityLabel={t('orderDetail.deliverButton')}
             />
           </Card>
         </View>

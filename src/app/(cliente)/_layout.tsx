@@ -1,10 +1,12 @@
 import { Redirect, Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@/components/Icon';
 import { useAuth } from '@/features/auth';
 import { useTheme } from '@/theme';
 
 export default function ClienteLayout() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { state, user } = useAuth();
 
@@ -35,8 +37,8 @@ export default function ClienteLayout() {
       <Tabs.Screen
         name="buscar"
         options={{
-          title: 'Buscar',
-          tabBarLabel: 'Buscar',
+          title: t('common.search'),
+          tabBarLabel: t('common.search'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="Search" size={size} color={typeof color === 'string' ? color : undefined} />
           ),
@@ -45,8 +47,8 @@ export default function ClienteLayout() {
       <Tabs.Screen
         name="perfil"
         options={{
-          title: 'Perfil',
-          tabBarLabel: 'Perfil',
+          title: t('common.profile'),
+          tabBarLabel: t('common.profile'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="User" size={size} color={typeof color === 'string' ? color : undefined} />
           ),

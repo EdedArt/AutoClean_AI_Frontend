@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AppIconName, Icon } from './Icon';
 import { getPhase } from '@/lib/phases';
@@ -19,6 +20,7 @@ export interface BadgeProps {
 }
 
 export function Badge({ label, variant = 'default', phase, icon, size = 'md', style }: BadgeProps) {
+  const { t } = useTranslation();
   const { colors, phaseColors, isDark } = useTheme();
 
   let backgroundColor = colors.surfaceAlt;
@@ -37,7 +39,7 @@ export function Badge({ label, variant = 'default', phase, icon, size = 'md', st
       borderColor = pColor.border;
     }
     if (phaseInfo) {
-      displayLabel = label ?? phaseInfo.label;
+      displayLabel = label ?? t(`phases.${phase}`, { defaultValue: phaseInfo.label });
       iconName = icon ?? phaseInfo.icon;
     }
   } else {

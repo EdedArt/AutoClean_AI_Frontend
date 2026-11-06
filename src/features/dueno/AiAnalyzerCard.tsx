@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 import { useAnalyzeOrderImage } from './useOrderMutations';
 import { type AiAnalysisResponse, type AiStatus } from '@/api/ai';
@@ -11,7 +12,6 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
-import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
@@ -60,6 +60,7 @@ export function AiAnalyzerCard({
   onAnalysisStateChange,
   onAnnounce,
 }: AiAnalyzerCardProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { mutate: analyzeImage, isPending: isAnalyzing } = useAnalyzeOrderImage();
 
@@ -298,8 +299,7 @@ export function AiAnalyzerCard({
           onSuccess: (response) => {
             abortControllerRef.current = null;
             setLastResult(response);
-            const currentPhaseLabel =
-              getPhase(response.phase.current)?.label ?? response.phase.current;
+            const currentPhaseLabel = t(`phases.${response.phase.current}`);
             if (response.phase.changed) {
               onAnnounce?.(`Análisis completado. Fase avanzada a ${currentPhaseLabel}`);
             } else {
@@ -341,11 +341,11 @@ export function AiAnalyzerCard({
 
   const aiProviderBadgeLabel = aiStatus
     ? aiStatus.effectiveProvider === 'gemini'
-      ? 'IA Gemini activa'
-      : 'IA simulada activa'
+      ? t('orderDetail.aiGeminiActive')
+      : t('orderDetail.aiCameraActive')
     : isAiStatusError
-      ? 'Estado IA sin conexión'
-      : 'Verificando IA…';
+      ? t('orderDetail.aiOfflineStatus')
+      : t('orderDetail.aiChecking');
 
   return (
     <Card
@@ -371,7 +371,7 @@ export function AiAnalyzerCard({
         <View style={styles.titleBlock}>
           <View style={styles.titleTopRow}>
             <AppText variant="subtitle" weight="bold" style={styles.titleText}>
-              Avance inteligente con IA
+              {t('orderDetail.aiTitle')}
             </AppText>
             <Badge
               label={aiProviderBadgeLabel}
@@ -380,8 +380,7 @@ export function AiAnalyzerCard({
             />
           </View>
           <AppText variant="caption" muted style={styles.subtitleText}>
-            Selecciona una foto del vehículo desde la galería para detectar la placa y avanzar de
-            fase automáticamente.
+            {t('orderDetail.aiDescription')}
           </AppText>
         </View>
       </View>
@@ -497,13 +496,13 @@ export function AiAnalyzerCard({
             </View>
 
             <Button
-              title="Cancelar análisis"
+              title={t('orderDetail.aiCancelButton')}
               variant="secondary"
               size="sm"
               leftIcon="X"
               onPress={handleCancelAnalysis}
               style={styles.cancelButton}
-              accessibilityLabel="Cancelar análisis de imagen en curso"
+              accessibilityLabel={t('orderDetail.aiCancelButton')}
             />
           </View>
         </View>
@@ -521,8 +520,7 @@ export function AiAnalyzerCard({
             >
               <Icon name="Info" size={15} color={colors.warning} />
               <AppText variant="caption" color="warning" style={styles.helperNoticeText}>
-                Primero marca el vehículo como &quot;Listo para lavar&quot; arriba para habilitar el
-                análisis con IA.
+                {t('orderDetail.aiNotReadyHint')}
               </AppText>
             </View>
           ) : isOrderCompleted ? (
@@ -537,7 +535,7 @@ export function AiAnalyzerCard({
             >
               <Icon name="CircleCheck" size={15} color={colors.accent} />
               <AppText variant="caption" color="accent" style={styles.helperNoticeText}>
-                El vehículo ya alcanzó la fase Listo. Puedes entregarlo al cliente.
+                {t('orderDetail.aiCompletedHint')}
               </AppText>
             </View>
           ) : isAiOffline ? (
@@ -552,13 +550,13 @@ export function AiAnalyzerCard({
             >
               <Icon name="AlertCircle" size={15} color={colors.danger} />
               <AppText variant="caption" color="danger" style={styles.helperNoticeText}>
-                El motor de IA no está disponible en este momento. Utiliza el control manual debajo.
+                {t('orderDetail.aiOfflineHint')}
               </AppText>
             </View>
           ) : null}
 
           <Button
-            title="Analizar con IA"
+            title={t('orderDetail.analyzeWithAI')}
             size="lg"
             leftIcon="Camera"
             fullWidth
@@ -566,7 +564,7 @@ export function AiAnalyzerCard({
               void handlePickAndAnalyze();
             }}
             disabled={isActionDisabled}
-            accessibilityLabel="Analizar con IA seleccionando una fotografía de la galería"
+            accessibilityLabel={t('orderDetail.analyzeWithAI')}
           />
         </View>
       )}
@@ -596,7 +594,7 @@ export function AiAnalyzerCard({
                 <Icon name="AlertCircle" size={16} color={colors.danger} />
               </View>
               <AppText variant="caption" weight="bold" color="danger" style={styles.feedbackTitle}>
-                No se pudo aplicar el análisis
+                {t('orderDetail.aiErrorTitle')}
               </AppText>
             </View>
             <AppText variant="caption" muted style={styles.feedbackDetail}>
@@ -659,21 +657,15 @@ export function AiAnalyzerCard({
                 ]}
               >
                 {lastResult.phase.changed
-                  ? `Fase avanzada automáticamente: ${getPhase(lastResult.phase.previous)?.label ?? lastResult.phase.previous} → ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}`
-                  : lastResult.phase.regression
-                    ? 'Análisis completado · Sin retroceso de fase'
-                    : `Análisis completado · Fase sin cambios (${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current})`}
+                  ? `${t(`phases.${lastResult.phase.previous}`)} → ${t(`phases.${lastResult.phase.current}`)}`
+                  : t(`phases.${lastResult.phase.current}`)}
               </AppText>
             </View>
 
             <AppText variant="caption" muted style={styles.feedbackDetail}>
               {lastResult.phase.changed
-                ? `Placa verificada: ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) · Fase detectada: ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.).`
-                : lastResult.phase.regression
-                  ? `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected} y observó una etapa anterior (${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected}, ${Math.round(lastResult.phase.confidence * 100)}% conf.). La orden se mantiene en ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current} porque el lavado no retrocede automáticamente.`
-                  : lastResult.phase.confidence < (aiStatus?.minConfidence ?? 0.6)
-                    ? `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected}, pero la confianza en la fase (${Math.round(lastResult.phase.confidence * 100)}%) fue inferior al umbral mínimo (${Math.round((aiStatus?.minConfidence ?? 0.6) * 100)}%). La orden permanece en ${getPhase(lastResult.phase.current)?.label ?? lastResult.phase.current}.`
-                    : `La IA identificó la placa ${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}% conf.) y detectó que el vehículo sigue en la etapa ${getPhase(lastResult.phase.detected)?.label ?? lastResult.phase.detected} (${Math.round(lastResult.phase.confidence * 100)}% conf.), por lo que no hubo cambio de fase.`}
+                ? `${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}%) · ${t(`phases.${lastResult.phase.detected}`)} (${Math.round(lastResult.phase.confidence * 100)}%).`
+                : `${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}%) · ${t(`phases.${lastResult.phase.detected}`)} (${Math.round(lastResult.phase.confidence * 100)}%).`}
             </AppText>
 
             {lastResult.fallbackUsed ? (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -29,6 +30,7 @@ export function ManualPhaseControl({
   loadingPhase = null,
   onSelectPhase,
 }: ManualPhaseControlProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -58,12 +60,7 @@ export function ManualPhaseControl({
         accessible
         accessibilityRole="button"
         accessibilityState={{ expanded }}
-        accessibilityLabel="Control manual de fases, sección de respaldo"
-        accessibilityHint={
-          expanded
-            ? 'Toca para ocultar los botones manuales de fase'
-            : 'Toca para desplegar los botones manuales de fase'
-        }
+        accessibilityLabel={t('orderDetail.manualControl')}
         style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}
       >
         <View style={styles.headerLeft}>
@@ -72,10 +69,10 @@ export function ManualPhaseControl({
           </View>
           <View style={styles.headerTextCol}>
             <AppText variant="body" weight="medium" color="textMuted">
-              Control manual
+              {t('orderDetail.manualControl')}
             </AppText>
             <AppText variant="caption" muted>
-              Respaldo manual en caso de contingencia con la IA
+              {t('orderDetail.manualControlSubtitle')}
             </AppText>
           </View>
         </View>
@@ -86,18 +83,19 @@ export function ManualPhaseControl({
       {expanded ? (
         <View style={[styles.body, { borderTopColor: colors.border }]}>
           <AppText variant="caption" muted style={styles.helperText}>
-            Selecciona una fase para actualizar manualmente la orden:
+            {t('orderDetail.manualControlInstruction')}
           </AppText>
 
           <View style={styles.phaseButtonsList}>
             {phases.map((phase) => {
               const isCurrent = phase.code === currentPhase;
               const isPhaseLoading = loadingPhase === phase.code;
+              const phaseLabel = t(`phases.${phase.code}`);
 
               return (
                 <Button
                   key={phase.code}
-                  title={isCurrent ? `${phase.label} (Actual)` : phase.label}
+                  title={isCurrent ? `${phaseLabel} (${t('orderDetail.current')})` : phaseLabel}
                   variant="secondary"
                   size="sm"
                   leftIcon={phase.icon}
@@ -105,7 +103,7 @@ export function ManualPhaseControl({
                   loading={isPhaseLoading}
                   onPress={() => onSelectPhase(phase.code)}
                   style={styles.phaseButton}
-                  accessibilityLabel={`Cambiar manualmente a fase ${phase.label}`}
+                  accessibilityLabel={phaseLabel}
                 />
               );
             })}

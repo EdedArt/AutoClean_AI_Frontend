@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { type ServiceOrder } from '@/api/orders';
 import { AppText } from '@/components/AppText';
@@ -7,7 +8,6 @@ import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/features/buscar/ProgressBar';
-import { getPhase } from '@/lib/phases';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -18,6 +18,7 @@ export interface ActiveOrderCardProps {
 }
 
 export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
+  const { t } = useTranslation();
   const { colors, phaseColors } = useTheme();
 
   const placa = order.vehicle?.placa ? formatPlateInput(order.vehicle.placa) : `#${order.id}`;
@@ -27,11 +28,10 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
         .join(' · ')
     : '';
 
-  const phaseInfo = getPhase(order.faseActual);
-  const phaseLabel = phaseInfo?.label ?? order.faseActual;
+  const phaseLabel = t(`phases.${order.faseActual}`);
   const phaseColor = phaseColors[order.faseActual].main;
 
-  const accessibilityLabel = `Orden de placa ${placa}${vehicleSubtitle ? `, ${vehicleSubtitle}` : ''}, fase ${phaseLabel}, progreso ${order.porcentajeProgreso}%${order.etaLabel ? `, ${order.etaLabel}` : ''}`;
+  const accessibilityLabel = `${placa}${vehicleSubtitle ? `, ${vehicleSubtitle}` : ''}, ${phaseLabel}, ${order.porcentajeProgreso}%${order.etaLabel ? `, ${order.etaLabel}` : ''}`;
 
   return (
     <Card
@@ -39,7 +39,6 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
       onPress={() => onPress(order.id)}
       style={styles.card}
       accessibilityLabel={accessibilityLabel}
-      accessibilityHint="Toca para abrir el detalle de la orden y analizar con IA"
     >
       <View style={styles.topRow}>
         <View style={styles.plateColumn}>
@@ -76,7 +75,7 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
               ]}
             >
               <AppText variant="caption" muted>
-                Bahía {order.bay.numero}
+                {t('ownerPanel.bay')} {order.bay.numero}
               </AppText>
             </View>
           ) : null}

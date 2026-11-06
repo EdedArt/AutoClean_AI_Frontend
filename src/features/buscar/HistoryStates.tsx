@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
@@ -9,6 +10,7 @@ import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export function HistoryEmptyState() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   return (
@@ -17,13 +19,13 @@ export function HistoryEmptyState() {
       style={styles.stateCard}
       accessible
       accessibilityRole="text"
-      accessibilityLabel="Aún no has buscado ninguna placa."
+      accessibilityLabel={t('client.noSearches')}
     >
       <View style={[styles.iconCircle, { backgroundColor: colors.surfaceAlt }]}>
         <Icon name="Clock" size={24} color={colors.textMuted} />
       </View>
       <AppText variant="body" muted style={styles.emptyMessage}>
-        Aún no has buscado ninguna placa.
+        {t('client.noSearches')}
       </AppText>
     </Card>
   );
@@ -42,6 +44,7 @@ export function HistoryErrorState({
   isFetching = false,
   onRetry,
 }: HistoryErrorStateProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   if (isRateLimited) {
@@ -56,19 +59,19 @@ export function HistoryErrorState({
           <Icon name="Clock" size={24} color={colors.warning} />
         </View>
         <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-          Demasiadas consultas seguidas
+          {t('common.rateLimitTitle')}
         </AppText>
         <AppText variant="caption" muted style={styles.stateDescription}>
-          Espera unos momentos antes de volver a actualizar tu historial de placas.
+          {t('client.rateLimitMessage')}
         </AppText>
         <Button
-          title="Reintentar"
+          title={t('common.retry')}
           variant="secondary"
           leftIcon="RefreshCw"
           onPress={onRetry}
           loading={isFetching}
           style={styles.retryButton}
-          accessibilityLabel="Reintentar carga del historial"
+          accessibilityLabel={t('common.retry')}
         />
       </Card>
     );
@@ -85,26 +88,27 @@ export function HistoryErrorState({
         <Icon name={isNetworkError ? 'WifiOff' : 'RefreshCw'} size={24} color={colors.danger} />
       </View>
       <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-        {isNetworkError ? 'Sin conexión con el servidor' : 'No se pudo cargar el historial'}
+        {isNetworkError ? t('common.noConnectionTitle') : t('client.historyLoadError')}
       </AppText>
       <AppText variant="caption" muted style={styles.stateDescription}>
         {isNetworkError
-          ? 'Verifica tu conexión e inténtalo nuevamente.'
-          : 'Ocurrió un inconveniente al consultar tus búsquedas recientes.'}
+          ? t('common.noConnectionSubtitle')
+          : t('client.historyLoadErrorDesc')}
       </AppText>
       <Button
-        title="Reintentar"
+        title={t('common.retry')}
         leftIcon="RefreshCw"
         onPress={onRetry}
         loading={isFetching}
         style={styles.retryButton}
-        accessibilityLabel="Reintentar carga del historial"
+        accessibilityLabel={t('common.retry')}
       />
     </Card>
   );
 }
 
 export function HistoryOfflineBanner() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
@@ -122,13 +126,14 @@ export function HistoryOfflineBanner() {
     >
       <Icon name="WifiOff" size={16} color={colors.warning} style={styles.bannerIcon} />
       <AppText variant="caption" style={[styles.bannerText, { color: colors.warning }]}>
-        Sin conexión. Mostrando el historial guardado.
+        {t('client.historyOfflineSaved')}
       </AppText>
     </View>
   );
 }
 
 export function HistoryRateLimitBanner() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
@@ -146,7 +151,7 @@ export function HistoryRateLimitBanner() {
     >
       <Icon name="Clock" size={16} color={colors.warning} style={styles.bannerIcon} />
       <AppText variant="caption" style={[styles.bannerText, { color: colors.warning }]}>
-        Límite de consultas alcanzado. Mostrando el historial guardado.
+        {t('client.historyRateLimitSaved')}
       </AppText>
     </View>
   );

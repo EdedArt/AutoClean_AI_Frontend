@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Icon } from './Icon';
 import { radius, spacing, typography } from '@/theme/tokens';
@@ -10,13 +11,14 @@ export interface ThemeToggleProps {
 }
 
 export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
+  const { t } = useTranslation();
   const { isDark, toggleTheme, colors } = useTheme();
 
   return (
     <Pressable
       onPress={toggleTheme}
       accessibilityRole="switch"
-      accessibilityLabel={`Cambiar a modo ${isDark ? 'claro' : 'oscuro'}`}
+      accessibilityLabel={isDark ? t('common.lightMode') : t('common.darkMode')}
       accessibilityState={{ checked: isDark }}
       style={({ pressed }) => [
         styles.container,
@@ -51,7 +53,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
             },
           ]}
         >
-          {isDark ? 'Modo Oscuro' : 'Modo Claro'}
+          {isDark ? t('common.darkMode') : t('common.lightMode')}
         </Text>
       )}
     </Pressable>

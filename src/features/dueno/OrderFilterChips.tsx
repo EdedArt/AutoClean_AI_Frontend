@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { type ServiceOrder } from '@/api/orders';
 import { AppText } from '@/components/AppText';
@@ -32,15 +33,16 @@ export interface OrderFilterChipsProps {
 }
 
 export function OrderFilterChips({ selected, onSelect, orders }: OrderFilterChipsProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   const waitingCount = orders.filter((o) => isOrderWaiting(o)).length;
   const inBayCount = orders.length - waitingCount;
 
   const chips: { key: OrderFilterType; label: string; count: number }[] = [
-    { key: 'ALL', label: 'Todos', count: orders.length },
-    { key: 'IN_BAY', label: 'En bahía', count: inBayCount },
-    { key: 'WAITING', label: 'En espera', count: waitingCount },
+    { key: 'ALL', label: t('ownerPanel.all'), count: orders.length },
+    { key: 'IN_BAY', label: t('ownerPanel.inBay'), count: inBayCount },
+    { key: 'WAITING', label: t('ownerPanel.waiting'), count: waitingCount },
   ];
 
   return (
@@ -54,7 +56,7 @@ export function OrderFilterChips({ selected, onSelect, orders }: OrderFilterChip
             accessible
             accessibilityRole="tab"
             accessibilityState={{ selected: isSelected }}
-            accessibilityLabel={`Filtro ${chip.label}: ${chip.count} órdenes`}
+            accessibilityLabel={`${chip.label} (${chip.count})`}
             style={({ pressed }) => [
               styles.chip,
               {

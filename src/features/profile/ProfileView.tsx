@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
@@ -11,7 +11,8 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { getRoleLabel, useAuth } from '@/features/auth';
+import { useAuth } from '@/features/auth';
+import { LANGUAGE_STORAGE_KEY, type SupportedLanguage } from '@/i18n';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 import { deleteAvatarFiles, persistAvatarFile, resolveOrMigrateAvatarUri } from './avatarStorage';
@@ -44,14 +45,25 @@ function getUserInitials(nombre?: string | null): string {
 }
 
 export function ProfileView() {
+  const { t, i18n } = useTranslation();
   const { colors, isDark } = useTheme();
   const { user, signOut } = useAuth();
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
 
   const storageKey = getAvatarStorageKey(user?.id);
   const initials = getUserInitials(user?.nombre);
-  const roleLabel = getRoleLabel(user?.role);
   const isDueno = user?.role === 'OPERARIO';
+  const roleLabel = isDueno ? t('profile.owner') : t('profile.client');
+  const currentLang: SupportedLanguage = i18n.language?.startsWith('en') ? 'en' : 'es';
+
+  const handleSelectLanguage = async (lang: SupportedLanguage) => {
+    await i18n.changeLanguage(lang);
+    try {
+      await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
+    } catch {
+      // Ignore local storage write failure
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -86,10 +98,7 @@ export function ProfileView() {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(
-          'Permiso requerido',
-          'Necesitamos acceso a tu galería de fotos para elegir una imagen de perfil. Puedes habilitar el permiso en los ajustes de tu teléfono.',
-        );
+        Alert.alert(t('profile.permissionRequiredTitle'), t('profile.permissionRequiredMsg'));
         return;
       }
 
@@ -112,14 +121,14 @@ export function ProfileView() {
               // Ignore local storage write failure
             }
           } else {
-            Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
+            Alert.alert(t('common.error'), t('profile.savePhotoError'));
           }
         } catch {
-          Alert.alert('Error', 'No se pudo guardar la foto de perfil.');
+          Alert.alert(t('common.error'), t('profile.savePhotoError'));
         }
       }
     } catch {
-      Alert.alert('Error', 'No se pudo abrir la galería de fotos del dispositivo.');
+      Alert.alert(t('common.error'), t('profile.openGalleryError'));
     }
   };
 
@@ -140,22 +149,22 @@ export function ProfileView() {
       return;
     }
 
-    Alert.alert('Foto de perfil', '¿Qué deseas hacer con tu foto de perfil?', [
+    Alert.alert(t('profile.photoDialogTitle'), t('profile.photoDialogMessage'), [
       {
-        text: 'Cambiar foto de galería',
+        text: t('profile.changeFromGallery'),
         onPress: () => {
           void handlePickFromGallery();
         },
       },
       {
-        text: 'Quitar foto actual',
+        text: t('profile.removeCurrentPhoto'),
         style: 'destructive',
         onPress: () => {
           void handleRemovePhoto();
         },
       },
       {
-        text: 'Cancelar',
+        text: t('common.cancel'),
         style: 'cancel',
       },
     ]);
@@ -163,12 +172,12 @@ export function ProfileView() {
 
   const handleSignOut = () => {
     Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro de que deseas cerrar sesión?',
+      t('profile.logout'),
+      t('profile.logoutConfirmMessage'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Cerrar sesión',
+          text: t('profile.logout'),
           style: 'destructive',
           onPress: async () => {
             await signOut();
@@ -188,8 +197,8 @@ export function ProfileView() {
           accessibilityRole="button"
           accessibilityLabel={
             avatarUri
-              ? 'Foto de perfil. Toca para cambiar o quitar tu foto'
-              : `Avatar con iniciales ${initials}. Toca para elegir una foto de perfil de tu galería`
+              ? `${t('profile.photoDialogTitle')}: ${t('profile.changePhoto')}`
+              : `${initials}: ${t('profile.choosePhoto')}`
           }
           style={({ pressed }) => [styles.avatarPressable, { opacity: pressed ? 0.85 : 1 }]}
         >
@@ -241,9 +250,7 @@ export function ProfileView() {
             }}
             accessible
             accessibilityRole="button"
-            accessibilityLabel={
-              avatarUri ? 'Cambiar foto de perfil' : 'Elegir foto de perfil desde galería'
-            }
+            accessibilityLabel={avatarUri ? t('profile.changePhoto') : t('profile.choosePhoto')}
             style={({ pressed }) => [
               styles.photoActionPill,
               {
@@ -255,7 +262,7 @@ export function ProfileView() {
           >
             <Icon name="Camera" size={14} color={colors.primary} />
             <AppText variant="caption" weight="semiBold" style={{ color: colors.primary }}>
-              {avatarUri ? 'Cambiar foto' : 'Elegir foto'}
+              {avatarUri ? t('profile.changePhoto') : t('profile.choosePhoto')}
             </AppText>
           </Pressable>
 
@@ -266,7 +273,7 @@ export function ProfileView() {
               }}
               accessible
               accessibilityRole="button"
-              accessibilityLabel="Quitar foto de perfil"
+              accessibilityLabel={t('profile.removePhoto')}
               style={({ pressed }) => [
                 styles.photoActionPill,
                 {
@@ -278,14 +285,14 @@ export function ProfileView() {
             >
               <Icon name="Trash2" size={14} color={colors.danger} />
               <AppText variant="caption" weight="semiBold" style={{ color: colors.danger }}>
-                Quitar foto
+                {t('profile.removePhoto')}
               </AppText>
             </Pressable>
           ) : null}
         </View>
 
         <AppText variant="title" weight="bold" style={styles.nameText}>
-          {user?.nombre || 'Usuario'}
+          {user?.nombre || t('profile.defaultUser')}
         </AppText>
         <AppText variant="caption" muted style={styles.emailText}>
           {user?.email || ''}
@@ -302,35 +309,64 @@ export function ProfileView() {
 
       <Card variant="elevated" style={styles.sectionCard}>
         <AppText variant="subtitle" weight="semiBold" style={styles.sectionTitle}>
-          Apariencia
+          {t('profile.appearance')}
         </AppText>
         <View style={styles.themeRow}>
           <AppText variant="body" muted>
-            Tema de la aplicación
+            {t('profile.appTheme')}
           </AppText>
           <ThemeToggle showLabel={false} />
         </View>
       </Card>
 
-      {__DEV__ && (
-        <Card variant="outlined" style={styles.sectionCard}>
-          <AppText variant="subtitle" weight="semiBold" style={styles.sectionTitle}>
-            Entorno de desarrollo
-          </AppText>
-          <Button
-            title="Ver Guía de Estilos"
-            variant="secondary"
-            size="md"
-            leftIcon="Sparkles"
-            fullWidth
-            onPress={() => router.push('/style-guide')}
-          />
-        </Card>
-      )}
+      <Card variant="elevated" style={styles.sectionCard}>
+        <AppText variant="subtitle" weight="semiBold" style={styles.sectionTitle}>
+          {t('profile.language')}
+        </AppText>
+        <View style={styles.languageRow} accessibilityRole="radiogroup">
+          {(
+            [
+              { code: 'es' as const, flag: '🇪🇸', label: t('profile.spanish') },
+              { code: 'en' as const, flag: '🇺🇸', label: t('profile.english') },
+            ] as const
+          ).map((option) => {
+            const isSelected = currentLang === option.code;
+            return (
+              <Pressable
+                key={option.code}
+                onPress={() => {
+                  void handleSelectLanguage(option.code);
+                }}
+                accessible
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={option.label}
+                style={({ pressed }) => [
+                  styles.languageOption,
+                  {
+                    backgroundColor: isSelected ? colors.primary : colors.surfaceAlt,
+                    borderColor: isSelected ? colors.primary : colors.border,
+                    opacity: pressed ? 0.8 : 1,
+                  },
+                ]}
+              >
+                <AppText style={styles.flagEmoji}>{option.flag}</AppText>
+                <AppText
+                  variant="body"
+                  weight={isSelected ? 'semiBold' : 'medium'}
+                  style={{ color: isSelected ? colors.onPrimary : colors.text }}
+                >
+                  {option.label}
+                </AppText>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
 
       <View style={styles.actionsContainer}>
         <Button
-          title="Cerrar sesión"
+          title={t('profile.logout')}
           variant="destructive"
           size="lg"
           leftIcon="LogOut"
@@ -426,6 +462,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: spacing[4],
+  },
+  languageRow: {
+    flexDirection: 'row',
+    gap: spacing[12],
+  },
+  languageOption: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    paddingHorizontal: spacing[12],
+    paddingVertical: spacing[8],
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    gap: spacing[8],
+  },
+  flagEmoji: {
+    fontSize: 18,
   },
   actionsContainer: {
     marginTop: spacing[8],

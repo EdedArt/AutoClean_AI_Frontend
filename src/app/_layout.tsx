@@ -1,3 +1,5 @@
+import '@/i18n';
+
 import { useEffect } from 'react';
 import {
   Inter_400Regular,
@@ -56,7 +58,6 @@ function RootNavigator() {
       <Stack.Screen name="(cliente)" />
       <Stack.Screen name="(dueno)" />
       <Stack.Screen name="orden/[id]" />
-      <Stack.Screen name="style-guide" />
     </Stack>
   );
 }
