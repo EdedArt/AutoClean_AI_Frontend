@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { apiClient } from './client';
+import { washPackageSchema } from './packages';
 import { getToken } from '@/lib/session';
 import { WashPhaseCode } from '@/theme/tokens';
 
@@ -9,6 +10,7 @@ const washPhaseEnum = z.enum([
   'REMOJO',
   'LAVADO',
   'SECADO',
+  'POLICHADO',
   'LISTO',
 ]) satisfies z.ZodType<WashPhaseCode>;
 
@@ -25,6 +27,9 @@ export const plateStatusSchema = z.object({
   etaMinutes: z.number().int().nullable().optional(),
   etaLabel: z.string(),
   estimatedReadyAt: z.string().nullable(),
+  incluyePolichado: z.boolean().optional(),
+  package: washPackageSchema.nullable().optional(),
+  paquete: washPackageSchema.nullable().optional(),
 });
 
 export type PlateStatus = z.infer<typeof plateStatusSchema>;

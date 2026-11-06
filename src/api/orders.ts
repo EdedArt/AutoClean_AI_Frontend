@@ -12,6 +12,7 @@ export const washPhaseEnum = z.enum([
   'REMOJO',
   'LAVADO',
   'SECADO',
+  'POLICHADO',
   'LISTO',
 ]) satisfies z.ZodType<WashPhaseCode>;
 
@@ -33,6 +34,7 @@ export const serviceOrderSchema = z.object({
   updatedAt: z.string(),
   vehicle: vehicleSchema.optional(),
   package: washPackageSchema.nullable().optional(),
+  paquete: washPackageSchema.nullable().optional(),
   bay: baySchema.nullable().optional(),
 });
 

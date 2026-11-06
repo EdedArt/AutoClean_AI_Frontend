@@ -31,6 +31,7 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
   const [waterAnim] = useState(() => new Animated.Value(0));
   const [foamAnim] = useState(() => new Animated.Value(0));
   const [windAnim] = useState(() => new Animated.Value(0));
+  const [polishAnim] = useState(() => new Animated.Value(0));
   const [listoAnim] = useState(() => new Animated.Value(0));
 
   // Listen to reduce-motion accessibility settings
@@ -75,6 +76,7 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
       waterAnim.stopAnimation();
       foamAnim.stopAnimation();
       windAnim.stopAnimation();
+      polishAnim.stopAnimation();
       listoAnim.stopAnimation();
       return;
     }
@@ -122,6 +124,25 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
         }),
       );
       activeAnimation.start();
+    } else if (phase === 'POLICHADO') {
+      polishAnim.setValue(0);
+      activeAnimation = Animated.loop(
+        Animated.sequence([
+          Animated.timing(polishAnim, {
+            toValue: 1,
+            duration: 950,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(polishAnim, {
+            toValue: 0,
+            duration: 950,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ]),
+      );
+      activeAnimation.start();
     } else if (phase === 'LISTO') {
       listoAnim.setValue(0);
       activeAnimation = Animated.loop(
@@ -148,7 +169,7 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
         activeAnimation.stop();
       }
     };
-  }, [phase, shouldAnimate, waterAnim, foamAnim, windAnim, listoAnim]);
+  }, [phase, shouldAnimate, waterAnim, foamAnim, windAnim, polishAnim, listoAnim]);
 
   // Interpolations for water drops (REMOJO)
   const drop1TranslateY = waterAnim.interpolate({
@@ -186,6 +207,20 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
   const windOpacity = windAnim.interpolate({
     inputRange: [0, 0.2, 0.8, 1],
     outputRange: [0, 1, 1, 0],
+  });
+
+  // Interpolations for sparkles / shine (POLICHADO)
+  const polishScaleMain = polishAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.85, 1.22],
+  });
+  const polishScaleAlt = polishAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1.18, 0.82],
+  });
+  const polishOpacity = polishAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0.65, 1, 0.65],
   });
 
   // Interpolations for check mark badge (LISTO)
@@ -233,8 +268,8 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
                  C 62 88, 50 96, 44 108 
                  Z"
               fill={colors.primary}
-              stroke={colors.border}
-              strokeWidth="1.5"
+              stroke={phase === 'POLICHADO' ? phaseColors.POLICHADO.main : colors.border}
+              strokeWidth={phase === 'POLICHADO' ? '2' : '1.5'}
             />
 
             {/* Cabin Glass / Windows */}
@@ -475,7 +510,55 @@ export function CarIllustration({ phase }: CarIllustrationProps) {
           </View>
         )}
 
-        {/* 5. LISTO: Check mark */}
+        {/* 5. POLICHADO: Dry car with violet/purple sparkles and shine */}
+        {phase === 'POLICHADO' && (
+          <View pointerEvents="none" style={styles.overlayContainer}>
+            <Animated.View
+              style={[
+                styles.effectBadge,
+                styles.polishBadgePosition,
+                {
+                  backgroundColor: phaseColors.POLICHADO.bg,
+                  borderColor: phaseColors.POLICHADO.border,
+                  opacity: shouldAnimate ? polishOpacity : 1,
+                  transform: shouldAnimate ? [{ scale: polishScaleMain }] : [],
+                },
+              ]}
+            >
+              <Icon name="Sparkles" size={18} color={phaseColors.POLICHADO.main} strokeWidth={2.3} />
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.sparkleSpot,
+                {
+                  left: 68,
+                  top: 44,
+                  opacity: shouldAnimate ? polishOpacity : 0.95,
+                  transform: shouldAnimate ? [{ scale: polishScaleAlt }] : [],
+                },
+              ]}
+            >
+              <Icon name="Sparkles" size={15} color={phaseColors.POLICHADO.main} />
+            </Animated.View>
+
+            <Animated.View
+              style={[
+                styles.sparkleSpot,
+                {
+                  left: 128,
+                  top: 22,
+                  opacity: shouldAnimate ? polishOpacity : 0.95,
+                  transform: shouldAnimate ? [{ scale: polishScaleMain }] : [],
+                },
+              ]}
+            >
+              <Icon name="Sparkles" size={16} color={phaseColors.POLICHADO.main} />
+            </Animated.View>
+          </View>
+        )}
+
+        {/* 6. LISTO: Check mark */}
         {phase === 'LISTO' && (
           <Animated.View
             style={[
@@ -529,9 +612,16 @@ const styles = StyleSheet.create({
     top: 14,
     right: 32,
   },
+  polishBadgePosition: {
+    top: 12,
+    right: 28,
+  },
   listoPosition: {
     top: 12,
     right: 28,
+  },
+  sparkleSpot: {
+    position: 'absolute',
   },
   drop: {
     position: 'absolute',

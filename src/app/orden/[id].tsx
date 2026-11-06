@@ -68,6 +68,10 @@ export default function OrderDetailScreen() {
   const { mutate: deliverOrderMutation, isPending: isDelivering } = useDeliverOrder();
 
   const order = hasValidOrderId ? orders.find((item) => Number(item.id) === orderId) : undefined;
+  const activePackage = order?.package ?? order?.paquete ?? null;
+  const incluyePolichado = Boolean(
+    activePackage?.incluyePolichado ?? (order?.faseActual === 'POLICHADO'),
+  );
 
   const handleRefresh = useCallback(async () => {
     setIsManualRefreshing(true);
@@ -383,7 +387,7 @@ export default function OrderDetailScreen() {
             </View>
 
             {/* Bay and Package Metadata Pills */}
-            {order.bay || order.package || order.vehicle?.nivelSuciedad ? (
+            {order.bay || activePackage || order.vehicle?.nivelSuciedad ? (
               <View style={styles.metaStrip}>
                 {order.bay ? (
                   <View
@@ -401,7 +405,7 @@ export default function OrderDetailScreen() {
                   </View>
                 ) : null}
 
-                {order.package ? (
+                {activePackage ? (
                   <View
                     style={[
                       styles.metaPill,
@@ -412,7 +416,7 @@ export default function OrderDetailScreen() {
                       Paquete:
                     </AppText>
                     <AppText variant="caption" weight="semiBold" style={styles.metaValue}>
-                      {order.package.nombre}
+                      {activePackage.nombre}
                     </AppText>
                   </View>
                 ) : null}
@@ -473,7 +477,12 @@ export default function OrderDetailScreen() {
                 style={styles.progressBar}
               />
 
-              <PhaseTracker currentPhase={order.faseActual} />
+              <PhaseTracker
+                currentPhase={order.faseActual}
+                incluyePolichado={incluyePolichado}
+                orden={order}
+                order={order}
+              />
             </View>
 
             {/* "Marcar listo para lavar" when listoParaLavar is false */}
@@ -535,6 +544,9 @@ export default function OrderDetailScreen() {
           {/* 3. SECONDARY FALLBACK: Control manual (collapsed by default) */}
           <ManualPhaseControl
             currentPhase={order.faseActual}
+            incluyePolichado={incluyePolichado}
+            orden={order}
+            order={order}
             disabled={isAiAnalyzing || isDelivering || isMarkingReady}
             loadingPhase={pendingManualPhase}
             onSelectPhase={handleManualPhaseChange}
