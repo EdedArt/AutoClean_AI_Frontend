@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { RefreshControl, StyleSheet, View } from 'react-native';
 import { type Href, router } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ActiveOrderCard } from '@/features/dueno/ActiveOrderCard';
 import { BaySummaryBar } from '@/features/dueno/BaySummaryBar';
@@ -21,6 +22,7 @@ import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export default function PanelScreen() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const [selectedFilter, setSelectedFilter] = useState<OrderFilterType>('ALL');
   const [isManualRefreshing, setIsManualRefreshing] = useState(false);
@@ -75,10 +77,10 @@ export default function PanelScreen() {
       {/* Header */}
       <View style={styles.header}>
         <AppText variant="title" weight="bold" style={styles.title}>
-          Panel de lavado
+          {t('ownerPanel.title')}
         </AppText>
         <AppText variant="caption" muted>
-          Órdenes activas y ocupación de bahías en tiempo real
+          {t('ownerPanel.subtitle')}
         </AppText>
       </View>
 
@@ -97,7 +99,7 @@ export default function PanelScreen() {
         >
           <Icon name="WifiOff" size={16} color={colors.warning} style={styles.bannerIcon} />
           <AppText variant="caption" style={[styles.bannerText, { color: colors.warning }]}>
-            Sin conexión. Mostrando el último estado.
+            {t('common.offlineShowingLast')}
           </AppText>
         </View>
       ) : null}
@@ -135,27 +137,27 @@ export default function PanelScreen() {
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
             {isNetworkError
-              ? 'Sin conexión con el servidor'
+              ? t('common.noConnectionTitle')
               : isRateLimited
-                ? 'Límite de consultas alcanzado'
-                : 'No se pudieron cargar las órdenes'}
+                ? t('common.rateLimitTitle')
+                : t('ownerPanel.loadOrdersError')}
           </AppText>
           <AppText variant="caption" muted style={styles.stateDescription}>
             {isNetworkError
-              ? 'Verifica que el backend esté activo e inténtalo de nuevo.'
+              ? t('common.noConnectionSubtitle')
               : isRateLimited
-                ? 'Espera unos segundos antes de actualizar nuevamente.'
-                : 'Ocurrió un inconveniente al obtener la lista de órdenes activas.'}
+                ? t('client.rateLimitMessage')
+                : t('ownerPanel.loadOrdersErrorDesc')}
           </AppText>
           <Button
-            title="Reintentar"
+            title={t('common.retry')}
             leftIcon="RefreshCw"
             onPress={() => {
               void handleRefresh();
             }}
             loading={isFetching}
             style={styles.retryButton}
-            accessibilityLabel="Reintentar carga del panel"
+            accessibilityLabel={t('common.retry')}
           />
         </Card>
       ) : null}
@@ -168,10 +170,10 @@ export default function PanelScreen() {
               <Icon name="Car" size={28} color={colors.textMuted} />
             </View>
             <AppText variant="subtitle" weight="semiBold" style={styles.emptyTitle}>
-              No hay carros en lavado.
+              {t('ownerPanel.noCarsWashing')}
             </AppText>
             <AppText variant="caption" muted style={styles.stateDescription}>
-              Registra un vehículo en la pestaña Registrar para iniciar una orden.
+              {t('ownerPanel.noCarsHint')}
             </AppText>
           </Card>
         ) : filteredOrders.length === 0 ? (
@@ -180,7 +182,7 @@ export default function PanelScreen() {
               <Icon name="Search" size={24} color={colors.textMuted} />
             </View>
             <AppText variant="body" muted style={styles.emptyFilterText}>
-              No hay carros en lavado para el filtro seleccionado.
+              {t('ownerPanel.noCarsForFilter')}
             </AppText>
           </Card>
         ) : (

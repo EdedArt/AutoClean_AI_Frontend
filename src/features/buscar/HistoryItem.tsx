@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { ProgressBar } from './ProgressBar';
 import { type SearchedPlateEntry } from '@/api/plates';
 import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Icon } from '@/components/Icon';
-import { getPhase } from '@/lib/phases';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, shadows, spacing } from '@/theme/tokens';
@@ -18,6 +18,7 @@ export interface HistoryItemProps {
 }
 
 export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
+  const { t } = useTranslation();
   const { colors, phaseColors, isDark } = useTheme();
   const formattedPlate = formatPlateInput(entry.placa);
   const status = entry.status;
@@ -25,10 +26,9 @@ export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
 
   let itemAccessibilityLabel = formattedPlate;
   if (status) {
-    const phaseInfo = getPhase(status.fase);
-    const phaseLabel = phaseInfo?.label ?? status.fase;
+    const phaseLabel = t(`phases.${status.fase}`);
     const vehicleInfo = [status.marca, status.modelo, status.color].filter(Boolean).join(' ');
-    itemAccessibilityLabel = `${formattedPlate}${vehicleInfo ? `, ${vehicleInfo}` : ''}, fase ${phaseLabel}, ${status.porcentajeProgreso}%${status.etaLabel ? `, ${status.etaLabel}` : ''}`;
+    itemAccessibilityLabel = `${formattedPlate}${vehicleInfo ? `, ${vehicleInfo}` : ''}, ${phaseLabel}, ${status.porcentajeProgreso}%${status.etaLabel ? `, ${status.etaLabel}` : ''}`;
   } else if (entry.message) {
     itemAccessibilityLabel = `${formattedPlate}, ${entry.message}`;
   }

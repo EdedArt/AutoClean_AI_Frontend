@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, RefreshControl, StyleSheet, View } from 'react-native';
 import { useIsFocused } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { PlateSearchField } from '@/features/buscar/PlateSearchField';
 import { RecentSearches } from '@/features/buscar/RecentSearches';
@@ -14,11 +15,11 @@ import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { useAuth } from '@/features/auth';
-import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
 export default function BuscarScreen() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { colors, isDark } = useTheme();
   const isFocused = useIsFocused();
@@ -34,15 +35,14 @@ export default function BuscarScreen() {
 
   useEffect(() => {
     if (data?.fase && data.fase !== previousPhaseRef.current) {
-      const phaseInfo = getPhase(data.fase);
-      const label = phaseInfo?.label ?? data.fase;
-      const announcement = `Fase actual: ${label}, ${data.porcentajeProgreso} por ciento`;
+      const label = t(`phases.${data.fase}`);
+      const announcement = `${label}: ${data.porcentajeProgreso}%`;
       setLiveAnnouncement(announcement);
       previousPhaseRef.current = data.fase;
     }
-  }, [data?.fase, data?.porcentajeProgreso]);
+  }, [data?.fase, data?.porcentajeProgreso, t]);
 
-  const greetingName = user?.nombre ? user.nombre.split(' ')[0] : 'Cliente';
+  const greetingName = user?.nombre ? user.nombre.split(' ')[0] : t('profile.client');
 
   const handleSearch = (plate: string) => {
     setInputText(plate);
@@ -120,10 +120,10 @@ export default function BuscarScreen() {
       {/* Header Greeting */}
       <View style={styles.header}>
         <AppText variant="title" weight="bold" style={styles.greetingTitle}>
-          Hola, {greetingName}
+          {t('client.greeting', { name: greetingName })}
         </AppText>
         <AppText variant="caption" muted>
-          Consulta el estado de tu vehículo en tiempo real
+          {t('client.subtitle')}
         </AppText>
       </View>
 
@@ -140,7 +140,7 @@ export default function BuscarScreen() {
         <Card variant="outlined" style={styles.stateCard}>
           <ActivityIndicator size="large" color={colors.primary} style={styles.stateIcon} />
           <AppText variant="body" muted style={styles.loadingMessage}>
-            Buscando estado del vehículo...
+            {t('client.searchingVehicle')}
           </AppText>
         </Card>
       )}
@@ -152,14 +152,14 @@ export default function BuscarScreen() {
             <Icon name="Search" size={26} color={colors.textMuted} />
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.notFoundMessage}>
-            No hay un carro lavándose con esta placa
+            {t('client.notFound')}
           </AppText>
           <Button
-            title="Nueva búsqueda"
+            title={t('client.newSearch')}
             variant="secondary"
             onPress={handleNewSearch}
             style={styles.actionButton}
-            accessibilityLabel="Iniciar una nueva búsqueda de placa"
+            accessibilityLabel={t('client.newSearch')}
           />
         </Card>
       )}
@@ -176,18 +176,18 @@ export default function BuscarScreen() {
             <Icon name="WifiOff" size={26} color={colors.danger} />
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-            Sin conexión con el servidor
+            {t('common.noConnectionTitle')}
           </AppText>
           <AppText variant="caption" muted style={styles.stateDescription}>
-            Verifica tu conexión a internet o el estado del backend e inténtalo de nuevo.
+            {t('common.noConnectionSubtitle')}
           </AppText>
           <Button
-            title="Reintentar"
+            title={t('common.retry')}
             leftIcon="RefreshCw"
             onPress={() => refetch()}
             loading={isFetching}
             style={styles.actionButton}
-            accessibilityLabel="Reintentar consulta de placa"
+            accessibilityLabel={t('common.retry')}
           />
         </Card>
       )}
@@ -204,13 +204,13 @@ export default function BuscarScreen() {
             <Icon name="Clock" size={26} color={colors.warning} />
           </View>
           <AppText variant="subtitle" weight="semiBold" style={styles.stateTitle}>
-            Límite de consultas alcanzado
+            {t('common.rateLimitTitle')}
           </AppText>
           <AppText variant="caption" muted style={styles.stateDescription}>
-            Has alcanzado el límite de consultas. Esperando unos momentos antes de reintentar.
+            {t('client.rateLimitMessage')}
           </AppText>
           <Button
-            title="Nueva búsqueda"
+            title={t('client.newSearch')}
             variant="secondary"
             onPress={handleNewSearch}
             style={styles.actionButton}
@@ -240,7 +240,7 @@ export default function BuscarScreen() {
             >
               <Icon name="WifiOff" size={16} color={colors.warning} style={styles.bannerIcon} />
               <AppText variant="caption" style={[styles.bannerText, { color: colors.warning }]}>
-                Sin conexión. Mostrando el último estado.
+                {t('common.offlineShowingLast')}
               </AppText>
             </View>
           )}
@@ -248,11 +248,11 @@ export default function BuscarScreen() {
           <StatusCard status={data} />
 
           <Button
-            title="Nueva búsqueda"
+            title={t('client.newSearch')}
             variant="secondary"
             onPress={handleNewSearch}
             style={styles.successNewSearchButton}
-            accessibilityLabel="Buscar otra placa"
+            accessibilityLabel={t('client.newSearch')}
           />
         </View>
       )}

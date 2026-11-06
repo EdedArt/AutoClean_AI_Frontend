@@ -1,10 +1,12 @@
 import { Redirect, Tabs } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { Icon } from '@/components/Icon';
 import { useAuth } from '@/features/auth';
 import { useTheme } from '@/theme';
 
 export default function DuenoLayout() {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const { state, user } = useAuth();
 
@@ -35,8 +37,8 @@ export default function DuenoLayout() {
       <Tabs.Screen
         name="panel"
         options={{
-          title: 'Panel',
-          tabBarLabel: 'Panel',
+          title: t('common.panel'),
+          tabBarLabel: t('common.panel'),
           tabBarIcon: ({ color, size }) => (
             <Icon
               name="LayoutDashboard"
@@ -49,8 +51,8 @@ export default function DuenoLayout() {
       <Tabs.Screen
         name="registrar"
         options={{
-          title: 'Registrar',
-          tabBarLabel: 'Registrar',
+          title: t('common.register'),
+          tabBarLabel: t('common.register'),
           tabBarIcon: ({ color, size }) => (
             <Icon
               name="ClipboardList"
@@ -63,8 +65,8 @@ export default function DuenoLayout() {
       <Tabs.Screen
         name="perfil"
         options={{
-          title: 'Perfil',
-          tabBarLabel: 'Perfil',
+          title: t('common.profile'),
+          tabBarLabel: t('common.profile'),
           tabBarIcon: ({ color, size }) => (
             <Icon name="User" size={size} color={typeof color === 'string' ? color : undefined} />
           ),

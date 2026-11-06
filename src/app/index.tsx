@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Redirect } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { hasReachedBackend } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -13,6 +14,7 @@ import { spacing } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export default function RootIndex() {
+  const { t } = useTranslation();
   const { state, user, retry } = useAuth();
   const { colors } = useTheme();
   const [retrying, setRetrying] = useState(false);
@@ -80,17 +82,17 @@ export default function RootIndex() {
         ) : state === 'loading' ? null : (
           <>
             <AppText variant="title" style={styles.offlineTitle}>
-              Sin conexión con el servidor
+              {t('common.noConnectionTitle')}
             </AppText>
 
             <AppText variant="body" color="textMuted" style={styles.offlineSubtitle}>
-              Verifica tu conexión a la red local o internet e inténtalo de nuevo.
+              {t('common.noConnectionSubtitle')}
             </AppText>
           </>
         )}
 
         <Button
-          title={isPendingConnection ? 'Conectando…' : 'Reintentar'}
+          title={isPendingConnection ? t('common.connecting') : t('common.retry')}
           variant="primary"
           size="lg"
           loading={isPendingConnection}

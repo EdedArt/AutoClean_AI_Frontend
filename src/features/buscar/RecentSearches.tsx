@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { useIsFocused } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { HistoryItem } from './HistoryItem';
 import { HistorySkeleton } from './HistorySkeleton';
@@ -31,6 +32,7 @@ export interface RecentSearchesProps {
 }
 
 export function RecentSearches({ onSelectPlate, onAnnounce }: RecentSearchesProps) {
+  const { t } = useTranslation();
   const isScreenFocused = useIsFocused();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [appState, setAppState] = useState<AppStateStatus>(
@@ -130,13 +132,13 @@ export function RecentSearches({ onSelectPlate, onAnnounce }: RecentSearchesProp
   }, [hasData, shouldAnimate, fadeAnim, translateAnim]);
 
   const handleConfirmDelete = (placa: string) => {
-    Alert.alert('Quitar del historial', `¿Quitar ${placa} de tu historial?`, [
+    Alert.alert(t('client.removeHistoryTitle'), t('client.removeHistoryConfirm', { plate: placa }), [
       {
-        text: 'Cancelar',
+        text: t('common.cancel'),
         style: 'cancel',
       },
       {
-        text: 'Quitar',
+        text: t('client.removeAction'),
         style: 'destructive',
         onPress: () => {
           deletePlate(placa);
@@ -154,7 +156,7 @@ export function RecentSearches({ onSelectPlate, onAnnounce }: RecentSearchesProp
           accessibilityRole="header"
           style={styles.sectionTitle}
         >
-          Búsquedas recientes
+          {t('client.recentSearches')}
         </AppText>
       </View>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AppText } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
@@ -14,6 +15,7 @@ export const CONNECTING_SERVER_MESSAGE =
   'Conectando con el servidor… la primera conexión puede tardar hasta un minuto.';
 
 export function ConnectingBanner({ style }: ConnectingBannerProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [fadeAnim] = useState(() => new Animated.Value(0));
@@ -78,9 +80,14 @@ export function ConnectingBanner({ style }: ConnectingBannerProps) {
       <View style={styles.iconContainer}>
         <Icon name="Clock" size={18} color={colors.info} />
       </View>
-      <AppText variant="caption" style={[styles.text, { color: colors.info }]}>
-        {CONNECTING_SERVER_MESSAGE}
-      </AppText>
+      <View style={styles.textColumn}>
+        <AppText variant="caption" weight="semiBold" style={{ color: colors.info }}>
+          {t('coldStart.title')}
+        </AppText>
+        <AppText variant="caption" style={[styles.text, { color: colors.info }]}>
+          {t('coldStart.message')}
+        </AppText>
+      </View>
     </Animated.View>
   );
 }
@@ -99,8 +106,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  text: {
+  textColumn: {
     flex: 1,
+  },
+  text: {
     lineHeight: 18,
   },
 });

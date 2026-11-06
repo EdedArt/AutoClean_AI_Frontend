@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button';
 import { TextField } from '@/components/TextField';
-import { formatPlateInput, INVALID_PLATE_MESSAGE, isValidPlate } from '@/lib/plate';
+import { formatPlateInput, isValidPlate } from '@/lib/plate';
 import { spacing } from '@/theme/tokens';
 
 export interface PlateSearchFieldProps {
@@ -23,6 +24,7 @@ export function PlateSearchField({
   externalError,
   onClearError,
 }: PlateSearchFieldProps) {
+  const { t } = useTranslation();
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const handleChangeText = (raw: string) => {
@@ -39,7 +41,7 @@ export function PlateSearchField({
   const handleSubmit = () => {
     const formatted = formatPlateInput(value);
     if (!isValidPlate(formatted)) {
-      setValidationError(INVALID_PLATE_MESSAGE);
+      setValidationError(t('client.invalidPlate'));
       return;
     }
 
@@ -52,8 +54,8 @@ export function PlateSearchField({
   return (
     <View style={styles.container}>
       <TextField
-        label="Placa del vehículo"
-        placeholder="ABC-123"
+        label={t('client.plateLabel')}
+        placeholder={t('client.platePlaceholder')}
         value={value}
         onChangeText={handleChangeText}
         maxLength={7}
@@ -74,19 +76,17 @@ export function PlateSearchField({
               }
             : undefined
         }
-        accessibilityLabel="Campo de placa del vehículo"
-        accessibilityHint="Ingresa los tres caracteres y tres dígitos de la placa"
+        accessibilityLabel={t('client.plateLabel')}
       />
 
       <Button
-        title="Buscar"
+        title={t('common.search')}
         leftIcon="Search"
         onPress={handleSubmit}
         loading={loading}
         disabled={loading}
         style={styles.searchButton}
-        accessibilityLabel="Buscar placa"
-        accessibilityHint="Inicia la consulta del estado de lavado para la placa ingresada"
+        accessibilityLabel={t('common.search')}
       />
     </View>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { CarIllustration } from './CarIllustration';
 import { PhaseTracker } from './PhaseTracker';
@@ -18,13 +19,11 @@ export interface StatusCardProps {
 }
 
 export function StatusCard({ status }: StatusCardProps) {
+  const { t } = useTranslation();
   const { colors, phaseColors } = useTheme();
   const currentPhaseInfo = getPhase(status.fase);
-  const phaseLabel = currentPhaseInfo?.label ?? status.fase;
-  const phaseDescription =
-    status.fase === 'POLICHADO'
-      ? 'Tu vehículo está siendo polichado'
-      : currentPhaseInfo?.description;
+  const phaseLabel = t(`phases.${status.fase}`);
+  const phaseDescription = t(`statusMessages.${status.fase}`);
   const currentPhaseColor = phaseColors[status.fase].main;
   const incluyePolichado = Boolean(
     status.incluyePolichado ??
@@ -35,7 +34,7 @@ export function StatusCard({ status }: StatusCardProps) {
 
   const vehicleDetails = `${status.marca} ${status.modelo} · ${status.color}`;
 
-  const accessibilitySummary = `Estado del vehículo con placa ${status.placa}: ${vehicleDetails}. Fase actual: ${phaseLabel}, progreso: ${status.porcentajeProgreso} por ciento. Tiempo estimado: ${status.etaLabel}.`;
+  const accessibilitySummary = `${status.placa}: ${vehicleDetails}. ${phaseLabel}, ${status.porcentajeProgreso}%. ${status.etaLabel ?? ''}`;
 
   return (
     <Card

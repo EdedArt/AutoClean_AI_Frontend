@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from 'react-native';
 import { type Href, router, useIsFocused } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ApiError } from '@/api/client';
 import { type ServiceOrder } from '@/api/orders';
@@ -17,7 +18,7 @@ import {
   PartialRegistrationError,
   useRegisterVehicleAndOrder,
 } from '@/features/dueno/useOrderMutations';
-import { formatPlateInput, INVALID_PLATE_MESSAGE, isValidPlate } from '@/lib/plate';
+import { formatPlateInput, isValidPlate } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
@@ -35,6 +36,7 @@ interface FormErrors {
 }
 
 export default function RegistrarScreen() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const isFocused = useIsFocused();
 
@@ -107,7 +109,7 @@ export default function RegistrarScreen() {
     const formattedPlaca = formatPlateInput(placa);
 
     if (!isValidPlate(formattedPlaca)) {
-      nextErrors.placa = INVALID_PLATE_MESSAGE;
+      nextErrors.placa = t('client.invalidPlate');
     }
 
     const trimmedOwner = ownerName.trim();
@@ -287,10 +289,10 @@ export default function RegistrarScreen() {
     >
       <View style={styles.header}>
         <AppText variant="title" weight="bold" style={styles.title}>
-          Registrar vehículo
+          {t('registerVehicle.title')}
         </AppText>
         <AppText variant="caption" muted>
-          Ingresa los datos del vehículo y asigna paquete y bahía de lavado
+          {t('registerVehicle.subtitle')}
         </AppText>
       </View>
 
@@ -320,16 +322,19 @@ export default function RegistrarScreen() {
             </View>
             <View style={styles.feedbackTextCol}>
               <AppText variant="subtitle" weight="semiBold">
-                Orden registrada exitosamente
+                {t('registerVehicle.orderCreatedTitle')}
               </AppText>
               <AppText variant="caption" muted style={styles.feedbackMessage}>
-                Placa {createdOrder.vehicle?.placa ?? ''} asignada a orden #{createdOrder.id}.
+                {t('registerVehicle.orderCreatedMessage', {
+                  placa: createdOrder.vehicle?.placa ?? '',
+                  id: createdOrder.id,
+                })}
               </AppText>
             </View>
           </View>
           <View style={styles.feedbackActions}>
             <Button
-              title="Ver detalle de la orden"
+              title={t('registerVehicle.viewOrderDetail')}
               size="sm"
               rightIcon="ChevronRight"
               onPress={() => {
@@ -392,7 +397,7 @@ export default function RegistrarScreen() {
           {submitBanner.activeOrderId ? (
             <View style={styles.feedbackActions}>
               <Button
-                title="Ir a la orden activa"
+                title={t('registerVehicle.goToActiveOrder')}
                 variant="secondary"
                 size="sm"
                 rightIcon="ChevronRight"
@@ -412,8 +417,8 @@ export default function RegistrarScreen() {
       {/* Form Card */}
       <Card variant="elevated" style={styles.formCard}>
         <TextField
-          label="Placa *"
-          placeholder="ABC-123"
+          label={`${t('registerVehicle.plate')} *`}
+          placeholder={t('client.platePlaceholder')}
           value={placa}
           onChangeText={(raw) => {
             setPlaca(formatPlateInput(raw));
@@ -429,8 +434,8 @@ export default function RegistrarScreen() {
         />
 
         <TextField
-          label="Nombre del dueño *"
-          placeholder="Ej. Carlos Gómez"
+          label={`${t('registerVehicle.ownerName')} *`}
+          placeholder={t('registerVehicle.ownerNamePlaceholder')}
           value={ownerName}
           onChangeText={(val) => {
             setOwnerName(val);
@@ -448,8 +453,8 @@ export default function RegistrarScreen() {
         <View style={styles.twoColRow}>
           <View style={styles.colItem}>
             <TextField
-              label="Marca *"
-              placeholder="Ej. Mazda"
+              label={`${t('registerVehicle.brand')} *`}
+              placeholder={t('registerVehicle.brandPlaceholder')}
               value={marca}
               onChangeText={(val) => {
                 setMarca(val);
@@ -466,8 +471,8 @@ export default function RegistrarScreen() {
 
           <View style={styles.colItem}>
             <TextField
-              label="Modelo *"
-              placeholder="Ej. CX-50"
+              label={`${t('registerVehicle.model')} *`}
+              placeholder={t('registerVehicle.modelPlaceholder')}
               value={modelo}
               onChangeText={(val) => {
                 setModelo(val);
@@ -483,8 +488,8 @@ export default function RegistrarScreen() {
         </View>
 
         <TextField
-          label="Color *"
-          placeholder="Ej. Rojo"
+          label={`${t('registerVehicle.color')} *`}
+          placeholder={t('registerVehicle.colorPlaceholder')}
           value={color}
           onChangeText={(val) => {
             setColor(val);
@@ -500,8 +505,8 @@ export default function RegistrarScreen() {
         />
 
         <TextField
-          label="Correo del cliente (opcional)"
-          placeholder="cliente@autoclean.com"
+          label={`${t('registerVehicle.clientEmail')} (${t('common.optional')})`}
+          placeholder={t('registerVehicle.clientEmailPlaceholder')}
           value={ownerEmail}
           onChangeText={(val) => {
             setOwnerEmail(val);
@@ -514,7 +519,7 @@ export default function RegistrarScreen() {
           autoCapitalize="none"
           autoCorrect={false}
           editable={!isSubmitting}
-          helperText="Si el cliente tiene cuenta, vincula el vehículo con su correo"
+          helperText={t('registerVehicle.clientEmailHint')}
           errorText={errors.ownerEmail}
         />
 
@@ -530,7 +535,7 @@ export default function RegistrarScreen() {
           <View style={styles.catalogsLoadingBlock}>
             <ActivityIndicator size="small" color={colors.primary} />
             <AppText variant="caption" muted style={styles.catalogsLoadingText}>
-              Cargando paquetes y bahías disponibles...
+              {t('registerVehicle.loadingCatalogs')}
             </AppText>
           </View>
         ) : catalogsError ? (
@@ -544,10 +549,10 @@ export default function RegistrarScreen() {
             ]}
           >
             <AppText variant="caption" color="danger" style={styles.catalogsErrorText}>
-              No se pudieron cargar los paquetes o las bahías.
+              {t('registerVehicle.errorCatalogs')}
             </AppText>
             <Button
-              title="Reintentar"
+              title={t('common.retry')}
               variant="secondary"
               size="sm"
               leftIcon="RefreshCw"
@@ -587,7 +592,7 @@ export default function RegistrarScreen() {
         )}
 
         <Button
-          title="Registrar vehículo y crear orden"
+          title={t('registerVehicle.submitButton')}
           size="lg"
           leftIcon="Plus"
           fullWidth

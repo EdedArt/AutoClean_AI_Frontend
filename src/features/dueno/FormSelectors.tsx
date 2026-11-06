@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { type Bay } from '@/api/bays';
 import { type WashPackage } from '@/api/packages';
@@ -24,6 +25,7 @@ export function PackageSelector({
   errorText,
   disabled = false,
 }: PackageSelectorProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
@@ -34,7 +36,7 @@ export function PackageSelector({
         color={errorText ? 'danger' : 'text'}
         style={styles.label}
       >
-        Paquete de lavado *
+        {t('registerVehicle.washPackage')} *
       </AppText>
 
       <View style={styles.packageList} accessibilityRole="radiogroup">
@@ -110,6 +112,7 @@ export function BaySelector({
   errorText,
   disabled = false,
 }: BaySelectorProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
@@ -120,7 +123,7 @@ export function BaySelector({
         color={errorText ? 'danger' : 'text'}
         style={styles.label}
       >
-        Bahía de lavado *
+        {t('registerVehicle.washBays')} *
       </AppText>
 
       <View style={styles.bayGrid} accessibilityRole="radiogroup">
@@ -158,7 +161,7 @@ export function BaySelector({
               accessible
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected, disabled: isItemDisabled }}
-              accessibilityLabel={`Bahía ${bay.numero}, ${isOccupied ? 'Ocupada, no disponible' : 'Libre'}`}
+              accessibilityLabel={`${t('ownerPanel.bay')} ${bay.numero}, ${isOccupied ? t('registerVehicle.bayOccupied') : t('registerVehicle.bayFree')}`}
               style={({ pressed }) => [
                 styles.bayCard,
                 {
@@ -171,12 +174,12 @@ export function BaySelector({
             >
               <View style={styles.bayTopRow}>
                 <AppText variant="body" weight="bold" style={{ color: textColor }}>
-                  Bahía {bay.numero}
+                  {t('ownerPanel.bay')} {bay.numero}
                 </AppText>
                 {isSelected ? <Icon name="Check" size={16} color={colors.primary} /> : null}
               </View>
               <AppText variant="caption" weight="medium" style={{ color: statusColor }}>
-                {isOccupied ? 'Ocupada' : 'Libre'}
+                {isOccupied ? t('registerVehicle.bayOccupied') : t('registerVehicle.bayFree')}
               </AppText>
             </Pressable>
           );
@@ -198,17 +201,24 @@ export interface DirtLevelSelectorProps {
   disabled?: boolean;
 }
 
+const DIRT_LEVEL_TRANSLATION_KEY: Record<DirtLevel, string> = {
+  Leve: 'registerVehicle.dirtLight',
+  Moderado: 'registerVehicle.dirtModerate',
+  Severo: 'registerVehicle.dirtSevere',
+};
+
 export function DirtLevelSelector({
   selected,
   onSelect,
   disabled = false,
 }: DirtLevelSelectorProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
     <View style={styles.section}>
       <AppText variant="body" weight="medium" style={styles.label}>
-        Nivel de suciedad (opcional)
+        {t('registerVehicle.dirtLevel')} ({t('common.optional')})
       </AppText>
 
       <View style={styles.dirtRow} accessibilityRole="radiogroup">
@@ -218,6 +228,7 @@ export function DirtLevelSelector({
           const backgroundColor = isSelected
             ? withAlpha(colors.primary, isDark ? 0.18 : 0.1)
             : colors.surface;
+          const translatedLevel = t(DIRT_LEVEL_TRANSLATION_KEY[level]);
 
           return (
             <Pressable
@@ -227,7 +238,7 @@ export function DirtLevelSelector({
               accessible
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected, disabled }}
-              accessibilityLabel={`Nivel de suciedad ${level}`}
+              accessibilityLabel={`${t('registerVehicle.dirtLevel')} ${translatedLevel}`}
               style={({ pressed }) => [
                 styles.dirtChip,
                 {
@@ -243,7 +254,7 @@ export function DirtLevelSelector({
                 weight={isSelected ? 'semiBold' : 'medium'}
                 style={{ color: isSelected ? colors.primary : colors.text }}
               >
-                {level}
+                {translatedLevel}
               </AppText>
             </Pressable>
           );

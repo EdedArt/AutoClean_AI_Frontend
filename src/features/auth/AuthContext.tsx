@@ -10,6 +10,7 @@ import {
   UserRole,
 } from '@/api/auth';
 import { ApiError, setUnauthorizedHandler } from '@/api/client';
+import { i18n } from '@/i18n';
 import { deleteToken, getToken, saveToken } from '@/lib/session';
 
 export type AuthState = 'loading' | 'authenticated' | 'unauthenticated' | 'offline';
@@ -34,9 +35,9 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function getRoleLabel(role?: UserRole): string {
   if (role === 'OPERARIO') {
-    return 'Dueño';
+    return i18n.t('profile.owner');
   }
-  return 'Cliente';
+  return i18n.t('profile.client');
 }
 
 interface AuthProviderProps {

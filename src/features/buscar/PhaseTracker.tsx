@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { AppText } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
@@ -25,6 +26,7 @@ export function PhaseTracker({
   orden,
   order,
 }: PhaseTrackerProps) {
+  const { t } = useTranslation();
   const { colors, phaseColors } = useTheme();
   const hasPolichado = Boolean(
     incluyePolichado ??
@@ -62,14 +64,14 @@ export function PhaseTracker({
               ? stepColor
               : colors.disabledText;
 
-          const statusLabel = isCurrent ? 'fase actual' : isCompleted ? 'completado' : 'pendiente';
+          const phaseLabel = t(`phases.${phase.code}`);
 
           return (
             <React.Fragment key={phase.code}>
               <View
                 style={styles.stepColumn}
                 accessible
-                accessibilityLabel={`${phase.label}, ${statusLabel}`}
+                accessibilityLabel={phaseLabel}
               >
                 <View
                   style={[
@@ -104,7 +106,7 @@ export function PhaseTracker({
                       },
                     ]}
                   >
-                    {phase.label}
+                    {phaseLabel}
                   </AppText>
                 </View>
               </View>

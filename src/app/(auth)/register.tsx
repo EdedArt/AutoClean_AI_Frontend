@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -16,6 +17,7 @@ import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { signUp } = useAuth();
 
@@ -179,7 +181,7 @@ export default function RegisterScreen() {
         if (err.code === 'DUPLICATE_RESOURCE' || err.status === 409) {
           setFieldErrors((prev) => ({
             ...prev,
-            email: 'Este correo ya está registrado',
+            email: t('auth.emailExists'),
           }));
           return;
         }
@@ -200,20 +202,20 @@ export default function RegisterScreen() {
         }
 
         if (err.code === 'RATE_LIMITED' || err.status === 429) {
-          setGeneralError('Demasiados intentos. Espera un momento e inténtalo de nuevo');
+          setGeneralError(t('auth.rateLimited'));
           return;
         }
 
         if (err.code === 'NETWORK_ERROR') {
-          setGeneralError('Sin conexión con el servidor. Revisa tu red e inténtalo de nuevo');
+          setGeneralError(t('auth.networkError'));
           return;
         }
 
-        setGeneralError(err.message || 'Ocurrió un error al crear la cuenta');
+        setGeneralError(err.message || t('auth.createAccountError'));
         return;
       }
 
-      setGeneralError('Sin conexión con el servidor. Revisa tu red e inténtalo de nuevo');
+      setGeneralError(t('auth.networkError'));
     }
   };
 
@@ -222,10 +224,10 @@ export default function RegisterScreen() {
       <View style={styles.header}>
         <Logo size={48} variant="full" />
         <AppText variant="title" weight="bold" style={styles.title}>
-          Crear cuenta
+          {t('auth.createAccount')}
         </AppText>
         <AppText variant="caption" color="textMuted" style={styles.subtitle}>
-          Regístrate para monitorear el estado y las fases de lavado de tu vehículo.
+          {t('auth.createAccountSubtitle')}
         </AppText>
         <View
           style={[
@@ -234,7 +236,7 @@ export default function RegisterScreen() {
           ]}
         >
           <AppText variant="caption" color="textMuted" style={styles.infoText}>
-            Las cuentas registradas aquí corresponden al perfil de cliente.
+            {t('auth.clientAccountNote')}
           </AppText>
         </View>
       </View>
@@ -259,8 +261,8 @@ export default function RegisterScreen() {
         )}
 
         <TextField
-          label="Nombre completo"
-          placeholder="Ej. Carlos Gómez"
+          label={t('auth.fullName')}
+          placeholder={t('auth.fullNamePlaceholder')}
           value={nombre}
           onChangeText={handleNombreChange}
           onBlur={handleNombreBlur}
@@ -275,8 +277,8 @@ export default function RegisterScreen() {
 
         <TextField
           ref={emailRef}
-          label="Correo electrónico"
-          placeholder="ejemplo@autoclean.com"
+          label={t('auth.email')}
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChangeText={handleEmailChange}
           onBlur={handleEmailBlur}
@@ -294,9 +296,9 @@ export default function RegisterScreen() {
 
         <TextField
           ref={passwordRef}
-          label="Contraseña"
-          placeholder="Entre 8 y 12 caracteres"
-          helperText="Entre 8 y 12 caracteres"
+          label={t('auth.password')}
+          placeholder={t('auth.passwordHint')}
+          helperText={t('auth.passwordHint')}
           value={password}
           onChangeText={handlePasswordChange}
           onBlur={handlePasswordBlur}
@@ -311,8 +313,8 @@ export default function RegisterScreen() {
 
         <TextField
           ref={confirmPasswordRef}
-          label="Confirmar contraseña"
-          placeholder="Repite tu contraseña"
+          label={t('auth.confirmPassword')}
+          placeholder={t('auth.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChangeText={handleConfirmPasswordChange}
           onBlur={handleConfirmPasswordBlur}
@@ -326,7 +328,7 @@ export default function RegisterScreen() {
         />
 
         <Button
-          title="Crear cuenta"
+          title={t('auth.createAccount')}
           variant="primary"
           size="lg"
           fullWidth
@@ -338,12 +340,12 @@ export default function RegisterScreen() {
 
       <View style={styles.footer}>
         <AppText variant="body" color="textMuted">
-          ¿Ya tienes cuenta?{' '}
+          {t('auth.hasAccount')}{' '}
         </AppText>
         <Link href="/(auth)/login" asChild>
           <Pressable hitSlop={8} accessibilityRole="link" style={styles.footerLinkTouch}>
             <AppText variant="body" color="primary" style={styles.linkText}>
-              Inicia sesión
+              {t('auth.signIn')}
             </AppText>
           </Pressable>
         </Link>

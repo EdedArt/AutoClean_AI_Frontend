@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { ApiError, hasReachedBackend } from '@/api/client';
 import { AppText } from '@/components/AppText';
@@ -17,6 +18,7 @@ import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
   const { signIn } = useAuth();
 
@@ -134,22 +136,22 @@ export default function LoginScreen() {
       setLoading(false);
       if (err instanceof ApiError) {
         if (err.code === 'INVALID_CREDENTIALS' || err.status === 401) {
-          setGeneralError('Correo o contraseña incorrectos');
+          setGeneralError(t('auth.invalidCredentials'));
           return;
         }
         if (err.code === 'RATE_LIMITED' || err.status === 429) {
-          setGeneralError('Demasiados intentos. Espera un momento e inténtalo de nuevo');
+          setGeneralError(t('auth.rateLimited'));
           return;
         }
         if (err.code === 'NETWORK_ERROR') {
-          setGeneralError('Sin conexión con el servidor. Revisa tu red e inténtalo de nuevo');
+          setGeneralError(t('auth.networkError'));
           return;
         }
-        setGeneralError(err.message || 'Ocurrió un error inesperado al iniciar sesión');
+        setGeneralError(err.message || t('auth.loginError'));
         return;
       }
 
-      setGeneralError('Sin conexión con el servidor. Revisa tu red e inténtalo de nuevo');
+      setGeneralError(t('auth.networkError'));
     } finally {
       if (slowTimerRef.current) {
         clearTimeout(slowTimerRef.current);
@@ -163,10 +165,10 @@ export default function LoginScreen() {
       <View style={styles.header}>
         <Logo size={52} variant="full" />
         <AppText variant="title" weight="bold" style={styles.title}>
-          Bienvenido
+          {t('auth.welcome')}
         </AppText>
         <AppText variant="caption" color="textMuted" style={styles.subtitle}>
-          Inicia sesión para gestionar o consultar el estado de tu vehículo en tiempo real.
+          {t('auth.loginSubtitle')}
         </AppText>
       </View>
 
@@ -194,8 +196,8 @@ export default function LoginScreen() {
         ) : null}
 
         <TextField
-          label="Correo electrónico"
-          placeholder="ejemplo@autoclean.com"
+          label={t('auth.email')}
+          placeholder={t('auth.emailPlaceholder')}
           value={email}
           onChangeText={handleEmailChange}
           onBlur={handleEmailBlur}
@@ -213,8 +215,8 @@ export default function LoginScreen() {
 
         <TextField
           ref={passwordRef}
-          label="Contraseña"
-          placeholder="Ingresa tu contraseña"
+          label={t('auth.password')}
+          placeholder={t('auth.passwordPlaceholder')}
           value={password}
           onChangeText={handlePasswordChange}
           onBlur={handlePasswordBlur}
@@ -228,7 +230,7 @@ export default function LoginScreen() {
         />
 
         <Button
-          title="Iniciar sesión"
+          title={t('auth.login')}
           variant="primary"
           size="lg"
           fullWidth
@@ -240,12 +242,12 @@ export default function LoginScreen() {
 
       <View style={styles.footer}>
         <AppText variant="body" color="textMuted">
-          ¿No tienes cuenta?{' '}
+          {t('auth.noAccount')}{' '}
         </AppText>
         <Link href="/(auth)/register" asChild>
           <Pressable hitSlop={8} accessibilityRole="link" style={styles.footerLinkTouch}>
             <AppText variant="body" color="primary" style={styles.linkText}>
-              Regístrate
+              {t('auth.signUp')}
             </AppText>
           </Pressable>
         </Link>

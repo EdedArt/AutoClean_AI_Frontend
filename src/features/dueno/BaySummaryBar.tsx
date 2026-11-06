@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { type BaySummary } from '@/api/bays';
 import { AppText } from '@/components/AppText';
@@ -13,6 +14,7 @@ export interface BaySummaryBarProps {
 }
 
 export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
 
   if (isLoading && !summary) {
@@ -23,7 +25,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
           { backgroundColor: colors.surface, borderColor: colors.border },
         ]}
         accessible
-        accessibilityLabel="Cargando estado de bahías"
+        accessibilityLabel={t('common.loading')}
       >
         <View style={[styles.skeletonBlock, { backgroundColor: colors.surfaceAlt }]} />
         <View style={[styles.skeletonBlock, { backgroundColor: colors.surfaceAlt }]} />
@@ -42,14 +44,14 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
       style={styles.card}
       accessible
       accessibilityRole="summary"
-      accessibilityLabel={`Resumen de bahías: ${summary.total} en total, ${summary.occupied} ocupadas, ${summary.free} libres`}
+      accessibilityLabel={`${t('ownerPanel.totalBays')}: ${summary.total}, ${t('ownerPanel.occupied')}: ${summary.occupied}, ${t('ownerPanel.free')}: ${summary.free}`}
     >
       <View style={styles.item}>
         <AppText variant="title" weight="bold" style={{ color: colors.text }}>
           {summary.total}
         </AppText>
         <AppText variant="caption" muted style={styles.label}>
-          Bahías totales
+          {t('ownerPanel.totalBays')}
         </AppText>
       </View>
 
@@ -60,7 +62,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
           {summary.occupied}
         </AppText>
         <AppText variant="caption" muted style={styles.label}>
-          Ocupadas
+          {t('ownerPanel.occupied')}
         </AppText>
       </View>
 
@@ -71,7 +73,7 @@ export function BaySummaryBar({ summary, isLoading = false }: BaySummaryBarProps
           {summary.free}
         </AppText>
         <AppText variant="caption" muted style={styles.label}>
-          Libres
+          {t('ownerPanel.free')}
         </AppText>
       </View>
     </Card>

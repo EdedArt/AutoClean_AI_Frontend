@@ -19,6 +19,7 @@ import {
   findVehicleByPlate,
   type Vehicle,
 } from '@/api/vehicles';
+import { i18n } from '@/i18n';
 import { WashPhaseCode } from '@/theme/tokens';
 
 export interface RegisterVehicleAndOrderInput extends CreateVehicleInput {
@@ -133,7 +134,7 @@ export function useRegisterVehicleAndOrder() {
 
           throw new PartialRegistrationError(
             vehicle,
-            `El vehículo ${vehicle.placa} se registró correctamente, pero falló la creación de la orden porque ${reason}. Selecciona otra bahía o presiona "Registrar vehículo" de nuevo para crear solo la orden.`,
+            i18n.t('registerVehicle.partialOrderError', { placa: vehicle.placa, reason }),
             code,
             orderErr,
           );
