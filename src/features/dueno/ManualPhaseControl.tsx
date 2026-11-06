@@ -5,12 +5,16 @@ import { AppText } from '@/components/AppText';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
-import { WASH_PHASES } from '@/lib/phases';
+import { type OrderWithPackage } from '@/features/buscar/PhaseTracker';
+import { getPhasesForOrder } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing, WashPhaseCode } from '@/theme/tokens';
 
 export interface ManualPhaseControlProps {
   currentPhase: WashPhaseCode;
+  incluyePolichado?: boolean;
+  orden?: OrderWithPackage | null;
+  order?: OrderWithPackage | null;
   disabled?: boolean;
   loadingPhase?: WashPhaseCode | null;
   onSelectPhase: (phase: WashPhaseCode) => void;
@@ -18,12 +22,25 @@ export interface ManualPhaseControlProps {
 
 export function ManualPhaseControl({
   currentPhase,
+  incluyePolichado,
+  orden,
+  order,
   disabled = false,
   loadingPhase = null,
   onSelectPhase,
 }: ManualPhaseControlProps) {
   const { colors } = useTheme();
   const [expanded, setExpanded] = useState(false);
+
+  const hasPolichado = Boolean(
+    incluyePolichado ??
+      orden?.paquete?.incluyePolichado ??
+      orden?.package?.incluyePolichado ??
+      order?.paquete?.incluyePolichado ??
+      order?.package?.incluyePolichado ??
+      (currentPhase === 'POLICHADO'),
+  );
+  const phases = getPhasesForOrder(hasPolichado);
 
   return (
     <Card
@@ -73,7 +90,7 @@ export function ManualPhaseControl({
           </AppText>
 
           <View style={styles.phaseButtonsList}>
-            {WASH_PHASES.map((phase) => {
+            {phases.map((phase) => {
               const isCurrent = phase.code === currentPhase;
               const isPhaseLoading = loadingPhase === phase.code;
 

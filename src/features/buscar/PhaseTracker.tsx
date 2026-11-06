@@ -3,26 +3,48 @@ import { StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
-import { getPhaseIndex, WASH_PHASES } from '@/lib/phases';
+import { getPhaseIndex, getPhasesForOrder } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { WashPhaseCode } from '@/theme/tokens';
 
-export interface PhaseTrackerProps {
-  currentPhase: WashPhaseCode;
+export interface OrderWithPackage {
+  package?: { incluyePolichado?: boolean } | null;
+  paquete?: { incluyePolichado?: boolean } | null;
 }
 
-export function PhaseTracker({ currentPhase }: PhaseTrackerProps) {
+export interface PhaseTrackerProps {
+  currentPhase: WashPhaseCode;
+  incluyePolichado?: boolean;
+  orden?: OrderWithPackage | null;
+  order?: OrderWithPackage | null;
+}
+
+export function PhaseTracker({
+  currentPhase,
+  incluyePolichado,
+  orden,
+  order,
+}: PhaseTrackerProps) {
   const { colors, phaseColors } = useTheme();
-  const currentIndex = getPhaseIndex(currentPhase);
+  const hasPolichado = Boolean(
+    incluyePolichado ??
+      orden?.paquete?.incluyePolichado ??
+      orden?.package?.incluyePolichado ??
+      order?.paquete?.incluyePolichado ??
+      order?.package?.incluyePolichado ??
+      (currentPhase === 'POLICHADO'),
+  );
+  const phases = getPhasesForOrder(hasPolichado);
+  const currentIndex = getPhaseIndex(currentPhase, hasPolichado);
 
   return (
     <View style={styles.container}>
       <View style={styles.stepsRow}>
-        {WASH_PHASES.map((phase, index) => {
+        {phases.map((phase, index) => {
           const isCompleted = index < currentIndex;
           const isCurrent = index === currentIndex;
           const isUpcoming = index > currentIndex;
-          const isLast = index === WASH_PHASES.length - 1;
+          const isLast = index === phases.length - 1;
 
           const stepColor = phaseColors[phase.code].main;
 

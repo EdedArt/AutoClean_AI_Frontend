@@ -21,7 +21,17 @@ export function StatusCard({ status }: StatusCardProps) {
   const { colors, phaseColors } = useTheme();
   const currentPhaseInfo = getPhase(status.fase);
   const phaseLabel = currentPhaseInfo?.label ?? status.fase;
+  const phaseDescription =
+    status.fase === 'POLICHADO'
+      ? 'Tu vehículo está siendo polichado'
+      : currentPhaseInfo?.description;
   const currentPhaseColor = phaseColors[status.fase].main;
+  const incluyePolichado = Boolean(
+    status.incluyePolichado ??
+      status.paquete?.incluyePolichado ??
+      status.package?.incluyePolichado ??
+      (status.fase === 'POLICHADO' || [25, 45, 65, 85].includes(status.porcentajeProgreso)),
+  );
 
   const vehicleDetails = `${status.marca} ${status.modelo} · ${status.color}`;
 
@@ -48,6 +58,20 @@ export function StatusCard({ status }: StatusCardProps) {
 
         <Badge variant="phase" phase={status.fase} />
       </View>
+
+      {phaseDescription ? (
+        <View style={styles.descriptionRow}>
+          <Icon
+            name={currentPhaseInfo?.icon ?? 'Sparkles'}
+            size={14}
+            color={currentPhaseColor}
+            style={styles.descriptionIcon}
+          />
+          <AppText variant="caption" style={{ color: currentPhaseColor }}>
+            {phaseDescription}
+          </AppText>
+        </View>
+      ) : null}
 
       {/* Center Illustration */}
       <View style={styles.illustrationSection}>
@@ -88,7 +112,11 @@ export function StatusCard({ status }: StatusCardProps) {
         </View>
 
         <View style={styles.trackerWrapper}>
-          <PhaseTracker currentPhase={status.fase} />
+          <PhaseTracker
+            currentPhase={status.fase}
+            incluyePolichado={incluyePolichado}
+            orden={status}
+          />
         </View>
       </View>
     </Card>
@@ -119,6 +147,14 @@ const styles = StyleSheet.create({
   vehicleSubtitle: {
     marginTop: 2,
     fontSize: 14,
+  },
+  descriptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing[4],
+  },
+  descriptionIcon: {
+    marginRight: 6,
   },
   illustrationSection: {
     marginVertical: spacing[8],

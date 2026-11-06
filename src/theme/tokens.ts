@@ -14,6 +14,7 @@ export interface ColorPalette {
   danger: string;
   warning: string;
   info: string;
+  phasePolichado: string;
   disabledBackground: string;
   disabledText: string;
   disabledBorder: string;
@@ -35,7 +36,8 @@ export interface PhaseColor {
   main: string;
 }
 
-export type WashPhaseCode = 'PENDIENTE' | 'REMOJO' | 'LAVADO' | 'SECADO' | 'LISTO';
+export type WashPhaseCode = 'PENDIENTE' | 'REMOJO' | 'LAVADO' | 'SECADO' | 'POLICHADO' | 'LISTO';
+export type Phase = WashPhaseCode;
 
 export type PhaseColorMap = Record<WashPhaseCode, PhaseColor>;
 
@@ -53,6 +55,7 @@ export const lightPalette: ColorPalette = {
   danger: '#DC2626',
   warning: '#D97706',
   info: '#0284C7',
+  phasePolichado: '#8B5CF6',
   disabledBackground: '#E2E8F0',
   disabledText: '#94A3B8',
   disabledBorder: '#E2E8F0',
@@ -73,6 +76,7 @@ export const darkPalette: ColorPalette = {
   danger: '#F87171',
   warning: '#FBBF24',
   info: '#38BDF8',
+  phasePolichado: '#A78BFA',
   disabledBackground: '#151F32',
   disabledText: '#5B6E86',
   disabledBorder: '#1C2940',
@@ -103,6 +107,12 @@ export const lightPhaseColors: PhaseColorMap = {
     bg: '#FEF3C7',
     text: '#92400E',
     border: '#FDE68A',
+  },
+  POLICHADO: {
+    main: '#8B5CF6', // violet
+    bg: '#EDE9FE',
+    text: '#6D28D9',
+    border: '#DDD6FE',
   },
   LISTO: {
     main: '#10B981', // emerald
@@ -136,6 +146,12 @@ export const darkPhaseColors: PhaseColorMap = {
     bg: 'rgba(251, 191, 36, 0.16)',
     text: '#FDE68A',
     border: 'rgba(251, 191, 36, 0.35)',
+  },
+  POLICHADO: {
+    main: '#A78BFA', // violet
+    bg: 'rgba(167, 139, 250, 0.16)',
+    text: '#C4B5FD',
+    border: 'rgba(167, 139, 250, 0.35)',
   },
   LISTO: {
     main: '#34D399', // emerald
