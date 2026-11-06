@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, LayoutAnimation, Pressable, StyleSheet, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import { useTranslation } from 'react-i18next';
@@ -57,6 +57,10 @@ export function ProfileView() {
   const currentLang: SupportedLanguage = i18n.language?.startsWith('en') ? 'en' : 'es';
 
   const handleSelectLanguage = async (lang: SupportedLanguage) => {
+    if (lang === currentLang) {
+      return;
+    }
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     await i18n.changeLanguage(lang);
     try {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
@@ -320,47 +324,59 @@ export function ProfileView() {
       </Card>
 
       <Card variant="elevated" style={styles.sectionCard}>
-        <AppText variant="subtitle" weight="semiBold" style={styles.sectionTitle}>
-          {t('profile.language')}
-        </AppText>
-        <View style={styles.languageRow} accessibilityRole="radiogroup">
-          {(
-            [
-              { code: 'es' as const, flag: '🇪🇸', label: t('profile.spanish') },
-              { code: 'en' as const, flag: '🇺🇸', label: t('profile.english') },
-            ] as const
-          ).map((option) => {
-            const isSelected = currentLang === option.code;
-            return (
-              <Pressable
-                key={option.code}
-                onPress={() => {
-                  void handleSelectLanguage(option.code);
-                }}
-                accessible
-                accessibilityRole="radio"
-                accessibilityState={{ selected: isSelected }}
-                accessibilityLabel={option.label}
-                style={({ pressed }) => [
-                  styles.languageOption,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.surfaceAlt,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <AppText style={styles.flagEmoji}>{option.flag}</AppText>
-                <AppText
-                  variant="body"
-                  weight={isSelected ? 'semiBold' : 'medium'}
-                  style={{ color: isSelected ? colors.onPrimary : colors.text }}
+        <View style={styles.themeRow}>
+          <AppText variant="subtitle" weight="semiBold">
+            {t('profile.language')}
+          </AppText>
+          <View
+            style={[
+              styles.segmentedControl,
+              {
+                backgroundColor: colors.surfaceAlt,
+                borderColor: colors.border,
+              },
+            ]}
+            accessibilityRole="radiogroup"
+          >
+            {(
+              [
+                { code: 'es' as const, label: 'ES', ariaLabel: t('profile.spanish') },
+                { code: 'en' as const, label: 'EN', ariaLabel: t('profile.english') },
+              ] as const
+            ).map((option) => {
+              const isSelected = currentLang === option.code;
+              return (
+                <Pressable
+                  key={option.code}
+                  onPress={() => {
+                    void handleSelectLanguage(option.code);
+                  }}
+                  accessible
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: isSelected }}
+                  accessibilityLabel={option.ariaLabel}
+                  style={({ pressed }) => [
+                    styles.segmentButton,
+                    {
+                      backgroundColor: isSelected ? colors.primary : 'transparent',
+                      opacity: pressed ? 0.8 : 1,
+                    },
+                  ]}
                 >
-                  {option.label}
-                </AppText>
-              </Pressable>
-            );
-          })}
+                  <AppText
+                    variant="caption"
+                    weight="semiBold"
+                    style={[
+                      styles.segmentText,
+                      { color: isSelected ? '#FFFFFF' : colors.textMuted },
+                    ]}
+                  >
+                    {option.label}
+                  </AppText>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
       </Card>
 
@@ -463,24 +479,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing[4],
   },
-  languageRow: {
-    flexDirection: 'row',
-    gap: spacing[12],
-  },
-  languageOption: {
-    flex: 1,
+  segmentedControl: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
-    paddingHorizontal: spacing[12],
-    paddingVertical: spacing[8],
+    width: 96,
+    padding: 3,
     borderRadius: radius.pill,
     borderWidth: 1,
-    gap: spacing[8],
   },
-  flagEmoji: {
-    fontSize: 18,
+  segmentButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  segmentText: {
+    fontSize: 13,
+    lineHeight: 16,
   },
   actionsContainer: {
     marginTop: spacing[8],
