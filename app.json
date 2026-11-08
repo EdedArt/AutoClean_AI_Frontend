@@ -8,9 +8,11 @@
     "scheme": "autoclean-ai-mobile",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.ededart.autocleanai"
     },
     "android": {
+      "package": "com.ededart.autocleanai",
       "adaptiveIcon": {
         "backgroundColor": "#ECFEFF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -40,11 +42,20 @@
       "expo-secure-store"
     ],
     "extra": {
-      "apiUrl": "https://autoclean-ai-backend.onrender.com"
+      "apiUrl": "https://autoclean-ai-backend.onrender.com",
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "435db1e3-38c7-4246-8f2d-746bd0337c97"
+      }
     },
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "owner": "ededarts-team"
   }
 }
