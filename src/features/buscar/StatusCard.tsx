@@ -10,7 +10,14 @@ import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
-import { getEtaLabel, getPackageName } from '@/lib/i18nFormat';
+import {
+  getBodyTypeName,
+  getEtaLabel,
+  getPackageName,
+  getVehicleColorName,
+  getVehicleSummary,
+} from '@/lib/i18nFormat';
+import { FALLBACK_COLOR_HEX, isHexColor, mapVehicleColor } from '@/lib/vehicleColor';
 import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -31,14 +38,39 @@ export function StatusCard({ status }: StatusCardProps) {
   const currentPhaseColor = phaseColors[status.fase].main;
   const incluyePolichado = Boolean(
     status.incluyePolichado ??
-      status.paquete?.incluyePolichado ??
-      status.package?.incluyePolichado ??
-      (status.fase === 'POLICHADO' || [25, 45, 65, 85].includes(status.porcentajeProgreso)),
+    status.paquete?.incluyePolichado ??
+    status.package?.incluyePolichado ??
+    (status.fase === 'POLICHADO' || [25, 45, 65, 85].includes(status.porcentajeProgreso)),
   );
 
-  const vehicleDetails = `${status.marca} ${status.modelo} · ${status.color}`;
+  const vehicleDetails = getVehicleSummary(t, status);
+  const colorName = getVehicleColorName(t, status.color);
+  const bodyTypeName = getBodyTypeName(t, status.bodyType);
+  const illustrationLabel = t(
+    bodyTypeName ? 'vehicle.illustrationA11y' : 'vehicle.illustrationA11yGeneric',
+    {
+      bodyType: bodyTypeName,
+      brand: status.marca.trim(),
+      model: status.modelo.trim(),
+      color: colorName,
+      phase: phaseLabel,
+    },
+  );
 
-  const accessibilitySummary = `${status.placa}: ${vehicleDetails}. ${phaseLabel}, ${status.porcentajeProgreso}%.${packageName ? ` ${t('orderDetail.package')}: ${packageName}.` : ''} ${etaText ?? ''}`;
+  // Paint: backend colorHex when it recognized the color, else the same local mapper
+  // (older backends), else neutral gray for a known silhouette, else the original theme car.
+  const localColor = mapVehicleColor(status.color);
+  const backendHex = isHexColor(status.colorHex) ? status.colorHex : null;
+  const backendKnown = backendHex !== null && backendHex.toUpperCase() !== FALLBACK_COLOR_HEX;
+  const paintHex = backendKnown
+    ? backendHex
+    : localColor.isKnown
+      ? localColor.hex
+      : status.bodyType
+        ? FALLBACK_COLOR_HEX
+        : null;
+
+  const accessibilitySummary = `${status.placa}: ${vehicleDetails}${bodyTypeName ? ` (${bodyTypeName})` : ''}. ${phaseLabel}, ${status.porcentajeProgreso}%.${packageName ? ` ${t('orderDetail.package')}: ${packageName}.` : ''} ${etaText ?? ''}`;
 
   return (
     <Card
@@ -53,9 +85,6 @@ export function StatusCard({ status }: StatusCardProps) {
         <View style={styles.plateContainer}>
           <AppText variant="display" weight="bold" style={styles.plateText}>
             {status.placa}
-          </AppText>
-          <AppText variant="body" muted style={styles.vehicleSubtitle}>
-            {vehicleDetails}
           </AppText>
           {packageName ? (
             <AppText variant="caption" muted style={styles.vehicleSubtitle}>
@@ -83,7 +112,22 @@ export function StatusCard({ status }: StatusCardProps) {
 
       {/* Center Illustration */}
       <View style={styles.illustrationSection}>
-        <CarIllustration phase={status.fase} />
+        <CarIllustration
+          phase={status.fase}
+          bodyType={status.bodyType ?? null}
+          paintHex={paintHex}
+          accessibilityLabel={illustrationLabel}
+        />
+        <AppText
+          variant="body"
+          weight="semiBold"
+          style={styles.vehicleCaption}
+          numberOfLines={2}
+          accessibilityElementsHidden
+          importantForAccessibility="no"
+        >
+          {vehicleDetails}
+        </AppText>
       </View>
 
       {/* Unified Status Block: Progress + ETA + Stepper */}
@@ -168,6 +212,11 @@ const styles = StyleSheet.create({
     marginVertical: spacing[8],
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  vehicleCaption: {
+    marginTop: spacing[4],
+    fontSize: 15,
+    textAlign: 'center',
   },
   statusBlock: {
     padding: spacing[12],

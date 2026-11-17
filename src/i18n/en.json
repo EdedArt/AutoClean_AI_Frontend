@@ -102,6 +102,44 @@
     "plateRemovedAnnouncement": "Plate {{plate}} removed from history",
     "removeHistoryRollback": "Could not remove {{plate}} from history. It was restored to the list."
   },
+  "vehicle": {
+    "summary": "{{brand}} {{model}} · {{color}}",
+    "colorUnspecified": "Not specified",
+    "illustrationA11y": "Vehicle illustration ({{bodyType}}): {{brand}} {{model}}, color {{color}}. Current phase: {{phase}}.",
+    "illustrationA11yGeneric": "Vehicle illustration: {{brand}} {{model}}, color {{color}}. Current phase: {{phase}}.",
+    "bodyTypes": {
+      "SEDAN": "Sedan",
+      "HATCHBACK": "Hatchback",
+      "SUV": "SUV",
+      "PICKUP": "Pickup truck",
+      "VAN": "Van"
+    },
+    "colors": {
+      "white": "White",
+      "black": "Black",
+      "silver": "Silver",
+      "gray": "Gray",
+      "darkGray": "Dark gray",
+      "lightGray": "Light gray",
+      "red": "Red",
+      "wine": "Burgundy",
+      "blue": "Blue",
+      "darkBlue": "Dark blue",
+      "lightBlue": "Light blue",
+      "green": "Green",
+      "darkGreen": "Dark green",
+      "lightGreen": "Light green",
+      "yellow": "Yellow",
+      "orange": "Orange",
+      "brown": "Brown",
+      "beige": "Beige",
+      "gold": "Gold",
+      "purple": "Purple",
+      "pink": "Pink",
+      "champagne": "Champagne",
+      "bronze": "Bronze"
+    }
+  },
   "ownerPanel": {
     "title": "Wash panel",
     "subtitle": "Active orders and bay occupancy in real time",
