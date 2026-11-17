@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { MY_PLATES_QUERY_KEY } from './useMyPlates';
 import { deleteMyPlate, type SearchedPlateEntry } from '@/api/plates';
+import { i18n } from '@/i18n';
 
 interface DeletePlateContext {
   previousPlates?: SearchedPlateEntry[];
@@ -39,7 +40,7 @@ export function useDeleteMyPlate(options?: UseDeleteMyPlateOptions) {
       if (context?.previousPlates) {
         queryClient.setQueryData<SearchedPlateEntry[]>(MY_PLATES_QUERY_KEY, context.previousPlates);
       }
-      const message = `No se pudo quitar ${placa} del historial. Se restauró en la lista.`;
+      const message = i18n.t('client.removeHistoryRollback', { plate: placa });
       setRollbackError(message);
       options?.onRollback?.(placa, message);
     },

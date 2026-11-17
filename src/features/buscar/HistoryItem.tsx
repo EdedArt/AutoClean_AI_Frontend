@@ -7,6 +7,7 @@ import { type SearchedPlateEntry } from '@/api/plates';
 import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Icon } from '@/components/Icon';
+import { getEtaLabel } from '@/lib/i18nFormat';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, shadows, spacing } from '@/theme/tokens';
@@ -23,14 +24,17 @@ export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
   const formattedPlate = formatPlateInput(entry.placa);
   const status = entry.status;
   const isDimmed = status === null;
+  const etaText = status ? getEtaLabel(t, status) : null;
+  // Backend message is Spanish-only; the only case it covers is "no active wash for this plate".
+  const notFoundText = entry.message ? t('client.notFound') : null;
 
   let itemAccessibilityLabel = formattedPlate;
   if (status) {
     const phaseLabel = t(`phases.${status.fase}`);
     const vehicleInfo = [status.marca, status.modelo, status.color].filter(Boolean).join(' ');
-    itemAccessibilityLabel = `${formattedPlate}${vehicleInfo ? `, ${vehicleInfo}` : ''}, ${phaseLabel}, ${status.porcentajeProgreso}%${status.etaLabel ? `, ${status.etaLabel}` : ''}`;
-  } else if (entry.message) {
-    itemAccessibilityLabel = `${formattedPlate}, ${entry.message}`;
+    itemAccessibilityLabel = `${formattedPlate}${vehicleInfo ? `, ${vehicleInfo}` : ''}, ${phaseLabel}, ${status.porcentajeProgreso}%${etaText ? `, ${etaText}` : ''}`;
+  } else if (notFoundText) {
+    itemAccessibilityLabel = `${formattedPlate}, ${notFoundText}`;
   }
 
   const vehicleDetails = status
@@ -57,7 +61,7 @@ export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
         accessible
         accessibilityRole="button"
         accessibilityLabel={itemAccessibilityLabel}
-        accessibilityHint="Toca para consultar el estado completo de esta placa"
+        accessibilityHint={t('client.historyItemHint')}
         style={({ pressed }) => [
           styles.mainButton,
           isDimmed && styles.dimmedContent,
@@ -98,19 +102,19 @@ export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
               <AppText variant="caption" weight="semiBold" style={{ color: currentPhaseColor }}>
                 {status.porcentajeProgreso}%
               </AppText>
-              {status.etaLabel ? (
+              {etaText ? (
                 <View style={styles.etaContainer}>
                   <Icon name="Clock" size={13} color={colors.textMuted} style={styles.etaIcon} />
                   <AppText variant="caption" muted numberOfLines={1}>
-                    {status.etaLabel}
+                    {etaText}
                   </AppText>
                 </View>
               ) : null}
             </View>
           </View>
-        ) : entry.message ? (
+        ) : notFoundText ? (
           <AppText variant="caption" muted style={styles.nullMessageText}>
-            {entry.message}
+            {notFoundText}
           </AppText>
         ) : null}
       </Pressable>
@@ -119,8 +123,8 @@ export function HistoryItem({ entry, onSelect, onDelete }: HistoryItemProps) {
         onPress={() => onDelete(formattedPlate)}
         accessible
         accessibilityRole="button"
-        accessibilityLabel={`Quitar ${formattedPlate} del historial`}
-        accessibilityHint="Abre confirmación para eliminar esta placa del historial"
+        accessibilityLabel={t('client.removeFromHistoryA11y', { plate: formattedPlate })}
+        accessibilityHint={t('client.removeFromHistoryHint')}
         hitSlop={4}
         style={({ pressed }) => [
           styles.trashButton,

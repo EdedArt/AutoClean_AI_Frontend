@@ -39,7 +39,7 @@ export function Badge({ label, variant = 'default', phase, icon, size = 'md', st
       borderColor = pColor.border;
     }
     if (phaseInfo) {
-      displayLabel = label ?? t(`phases.${phase}`, { defaultValue: phaseInfo.label });
+      displayLabel = label ?? t(`phases.${phase}`);
       iconName = icon ?? phaseInfo.icon;
     }
   } else {

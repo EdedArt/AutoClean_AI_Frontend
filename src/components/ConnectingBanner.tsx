@@ -11,9 +11,6 @@ export interface ConnectingBannerProps {
   style?: StyleProp<ViewStyle>;
 }
 
-export const CONNECTING_SERVER_MESSAGE =
-  'Conectando con el servidor… la primera conexión puede tardar hasta un minuto.';
-
 export function ConnectingBanner({ style }: ConnectingBannerProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useTheme();

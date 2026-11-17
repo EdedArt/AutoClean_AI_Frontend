@@ -163,6 +163,7 @@ export interface HistoryRollbackBannerProps {
 }
 
 export function HistoryRollbackBanner({ message, onDismiss }: HistoryRollbackBannerProps) {
+  const { t } = useTranslation();
   const { colors, isDark } = useTheme();
 
   return (
@@ -185,7 +186,7 @@ export function HistoryRollbackBanner({ message, onDismiss }: HistoryRollbackBan
         onPress={onDismiss}
         accessible
         accessibilityRole="button"
-        accessibilityLabel="Cerrar aviso de error"
+        accessibilityLabel={t('client.dismissErrorA11y')}
         style={styles.dismissButton}
       >
         <Icon name="X" size={16} color={colors.danger} />

@@ -5,6 +5,8 @@ import { getToken } from '@/lib/session';
 
 export const washPackageSchema = z.object({
   id: z.number().int(),
+  /** Stable package code used for i18n (e.g. "BASICO"); null on older backends. */
+  codigo: z.string().nullable().optional(),
   nombre: z.string(),
   descripcion: z.string(),
   precio: z.number().nullable().optional(),

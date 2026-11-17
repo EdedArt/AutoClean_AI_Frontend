@@ -1,5 +1,3 @@
-export const INVALID_PLATE_MESSAGE = 'Formato de placa no válido. Ejemplo: ABC-123';
-
 const PLATE_REGEX = /^[A-Z]{3}-\d{3}$/;
 
 /**

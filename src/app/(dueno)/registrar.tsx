@@ -18,6 +18,7 @@ import {
   PartialRegistrationError,
   useRegisterVehicleAndOrder,
 } from '@/features/dueno/useOrderMutations';
+import { getApiErrorMessage } from '@/lib/i18nFormat';
 import { formatPlateInput, isValidPlate } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
@@ -114,45 +115,45 @@ export default function RegistrarScreen() {
 
     const trimmedOwner = ownerName.trim();
     if (trimmedOwner.length < 2) {
-      nextErrors.ownerName = 'El nombre del dueño debe tener al menos 2 caracteres.';
+      nextErrors.ownerName = t('registerVehicle.errors.ownerNameMin');
     } else if (trimmedOwner.length > 60) {
-      nextErrors.ownerName = 'El nombre del dueño no puede superar 60 caracteres.';
+      nextErrors.ownerName = t('registerVehicle.errors.ownerNameMax');
     }
 
     if (!marca.trim()) {
-      nextErrors.marca = 'Ingresa la marca del vehículo.';
+      nextErrors.marca = t('registerVehicle.errors.brandRequired');
     }
 
     if (!modelo.trim()) {
-      nextErrors.modelo = 'Ingresa el modelo del vehículo.';
+      nextErrors.modelo = t('registerVehicle.errors.modelRequired');
     }
 
     const trimmedColor = color.trim();
     if (!trimmedColor) {
-      nextErrors.color = 'Ingresa el color del vehículo.';
+      nextErrors.color = t('registerVehicle.errors.colorRequired');
     } else if (trimmedColor.length > 30) {
-      nextErrors.color = 'El color no puede superar 30 caracteres.';
+      nextErrors.color = t('registerVehicle.errors.colorMax');
     }
 
     const trimmedEmail = ownerEmail.trim();
     if (trimmedEmail.length > 0) {
       if (trimmedEmail.length > 100) {
-        nextErrors.ownerEmail = 'El correo no puede superar 100 caracteres.';
+        nextErrors.ownerEmail = t('registerVehicle.errors.emailMax');
       } else if (!EMAIL_REGEX.test(trimmedEmail)) {
-        nextErrors.ownerEmail = 'Ingresa un correo electrónico válido.';
+        nextErrors.ownerEmail = t('registerVehicle.errors.emailInvalid');
       }
     }
 
     if (!packageId) {
-      nextErrors.packageId = 'Selecciona un paquete de lavado.';
+      nextErrors.packageId = t('registerVehicle.errors.packageRequired');
     }
 
     if (!bayId) {
-      nextErrors.bayId = 'Selecciona una bahía libre.';
+      nextErrors.bayId = t('registerVehicle.errors.bayRequired');
     } else {
       const selectedBay = bays?.find((b) => b.id === bayId);
       if (selectedBay?.ocupada) {
-        nextErrors.bayId = 'La bahía seleccionada está ocupada. Elige otra.';
+        nextErrors.bayId = t('registerVehicle.errors.bayOccupied');
       }
     }
 
@@ -194,7 +195,7 @@ export default function RegistrarScreen() {
           if (err instanceof PartialRegistrationError) {
             setSubmitBanner({
               type: 'warning',
-              title: 'Vehículo creado, pero la orden quedó pendiente',
+              title: t('registerVehicle.errors.partialTitle'),
               message: err.message,
             });
             return;
@@ -205,8 +206,8 @@ export default function RegistrarScreen() {
               const details = err.details as { orderId?: number } | undefined;
               setSubmitBanner({
                 type: 'warning',
-                title: 'Orden activa existente',
-                message: `El vehículo con placa ${formattedPlaca} ya tiene una orden de lavado activa en curso.`,
+                title: t('registerVehicle.errors.activeOrderTitle'),
+                message: t('registerVehicle.errors.activeOrderMessage', { placa: formattedPlaca }),
                 activeOrderId: details?.orderId,
               });
               return;
@@ -215,12 +216,12 @@ export default function RegistrarScreen() {
             if (err.code === 'BAY_OCCUPIED') {
               setErrors((prev) => ({
                 ...prev,
-                bayId: 'Esta bahía acaba de ser ocupada. Selecciona una bahía libre.',
+                bayId: t('registerVehicle.errors.bayJustTaken'),
               }));
               setSubmitBanner({
                 type: 'error',
-                title: 'Bahía ocupada',
-                message: 'La bahía seleccionada ya está ocupada. Elige otra bahía libre.',
+                title: t('registerVehicle.errors.bayOccupiedTitle'),
+                message: t('registerVehicle.errors.bayOccupiedMessage'),
               });
               return;
             }
@@ -228,8 +229,7 @@ export default function RegistrarScreen() {
             if (err.code === 'OWNER_NOT_FOUND') {
               setErrors((prev) => ({
                 ...prev,
-                ownerEmail:
-                  'No existe una cuenta de cliente registrada con este correo. Déjalo vacío o corrígelo.',
+                ownerEmail: t('registerVehicle.errors.ownerNotFound'),
               }));
               return;
             }
@@ -237,7 +237,7 @@ export default function RegistrarScreen() {
             if (err.code === 'INVALID_OWNER') {
               setErrors((prev) => ({
                 ...prev,
-                ownerEmail: 'El correo ingresado no corresponde a una cuenta de cliente.',
+                ownerEmail: t('registerVehicle.errors.invalidOwner'),
               }));
               return;
             }
@@ -245,25 +245,24 @@ export default function RegistrarScreen() {
             if (err.code === 'NETWORK_ERROR') {
               setSubmitBanner({
                 type: 'error',
-                title: 'Sin conexión con el servidor',
-                message:
-                  'Verifica tu conexión a internet o el estado del backend e inténtalo de nuevo.',
+                title: t('common.noConnectionTitle'),
+                message: t('common.noConnectionSubtitle'),
               });
               return;
             }
 
             setSubmitBanner({
               type: 'error',
-              title: 'No se pudo completar el registro',
-              message: err.message,
+              title: t('registerVehicle.errors.registerFailedTitle'),
+              message: getApiErrorMessage(t, err, 'registerVehicle.errors.registerFailedMessage'),
             });
             return;
           }
 
           setSubmitBanner({
             type: 'error',
-            title: 'Error inesperado',
-            message: 'No fue posible registrar el vehículo y la orden. Inténtalo de nuevo.',
+            title: t('registerVehicle.errors.unexpectedTitle'),
+            message: t('registerVehicle.errors.registerFailedMessage'),
           });
         },
       },

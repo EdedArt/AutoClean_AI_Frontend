@@ -7,6 +7,7 @@ import { type WashPackage } from '@/api/packages';
 import { DIRT_LEVELS, type DirtLevel } from '@/api/vehicles';
 import { AppText } from '@/components/AppText';
 import { Icon } from '@/components/Icon';
+import { getPackageDescription, getPackageName } from '@/lib/i18nFormat';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
@@ -42,6 +43,9 @@ export function PackageSelector({
       <View style={styles.packageList} accessibilityRole="radiogroup">
         {packages.map((pkg) => {
           const isSelected = selectedId === pkg.id;
+          const pkgName = getPackageName(t, pkg);
+          const pkgDescription = getPackageDescription(t, pkg);
+          const pkgPrice = pkg.precio != null ? `$${pkg.precio.toLocaleString('es-CO')}` : null;
           const borderColor = isSelected ? colors.primary : colors.border;
           const bgColor = isSelected
             ? withAlpha(colors.primary, isDark ? 0.18 : 0.08)
@@ -55,7 +59,10 @@ export function PackageSelector({
               accessible
               accessibilityRole="radio"
               accessibilityState={{ selected: isSelected, disabled }}
-              accessibilityLabel={`Paquete ${pkg.nombre}: ${pkg.descripcion}${pkg.precio != null ? `, $${pkg.precio.toLocaleString('es-CO')}` : ''}`}
+              accessibilityLabel={t('registerVehicle.packageA11y', {
+                name: pkgName,
+                description: pkgDescription,
+              }) + (pkgPrice ? `, ${pkgPrice}` : '')}
               style={({ pressed }) => [
                 styles.packageOption,
                 {
@@ -68,20 +75,20 @@ export function PackageSelector({
             >
               <View style={styles.packageHeader}>
                 <AppText variant="body" weight="semiBold" style={styles.packageName}>
-                  {pkg.nombre}
+                  {pkgName}
                 </AppText>
-                {pkg.precio != null ? (
+                {pkgPrice ? (
                   <AppText
                     variant="caption"
                     weight="bold"
                     style={{ color: isSelected ? colors.primary : colors.text }}
                   >
-                    ${pkg.precio.toLocaleString('es-CO')}
+                    {pkgPrice}
                   </AppText>
                 ) : null}
               </View>
               <AppText variant="caption" muted style={styles.packageDesc}>
-                {pkg.descripcion}
+                {pkgDescription}
               </AppText>
             </Pressable>
           );

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import { useIsFocused } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -10,6 +11,7 @@ export interface PanelSkeletonProps {
 }
 
 export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const isFocused = useIsFocused();
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -73,7 +75,7 @@ export function PanelSkeleton({ rows = 3 }: PanelSkeletonProps) {
     <View
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel="Cargando órdenes activas del panel"
+      accessibilityLabel={t('ownerPanel.loadingA11y')}
     >
       {items.map((idx) => (
         <Animated.View

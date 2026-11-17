@@ -8,6 +8,7 @@ import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
 import { ProgressBar } from '@/features/buscar/ProgressBar';
+import { getEtaLabel } from '@/lib/i18nFormat';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -30,8 +31,9 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
 
   const phaseLabel = t(`phases.${order.faseActual}`);
   const phaseColor = phaseColors[order.faseActual].main;
+  const etaText = getEtaLabel(t, order);
 
-  const accessibilityLabel = `${placa}${vehicleSubtitle ? `, ${vehicleSubtitle}` : ''}, ${phaseLabel}, ${order.porcentajeProgreso}%${order.etaLabel ? `, ${order.etaLabel}` : ''}`;
+  const accessibilityLabel = `${placa}${vehicleSubtitle ? `, ${vehicleSubtitle}` : ''}, ${phaseLabel}, ${order.porcentajeProgreso}%${etaText ? `, ${etaText}` : ''}`;
 
   return (
     <Card
@@ -82,11 +84,11 @@ export function ActiveOrderCard({ order, onPress }: ActiveOrderCardProps) {
         </View>
 
         <View style={styles.metaRight}>
-          {order.etaLabel ? (
+          {etaText ? (
             <View style={styles.etaRow}>
               <Icon name="Clock" size={13} color={colors.textMuted} style={styles.etaIcon} />
               <AppText variant="caption" muted numberOfLines={1}>
-                {order.etaLabel}
+                {etaText}
               </AppText>
             </View>
           ) : null}
