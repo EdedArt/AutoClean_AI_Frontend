@@ -11,7 +11,6 @@ import {
 import { Redirect, router, useIsFocused, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { ApiError } from '@/api/client';
 import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
@@ -30,6 +29,7 @@ import {
   useMarkOrderReady,
   useUpdateOrderPhase,
 } from '@/features/dueno/useOrderMutations';
+import { getApiErrorMessage, getEtaLabel, getPackageName } from '@/lib/i18nFormat';
 import { formatPlateInput } from '@/lib/plate';
 import { useTheme } from '@/theme';
 import { radius, spacing, WashPhaseCode, withAlpha } from '@/theme/tokens';
@@ -69,6 +69,7 @@ export default function OrderDetailScreen() {
   const { mutate: deliverOrderMutation, isPending: isDelivering } = useDeliverOrder();
 
   const order = hasValidOrderId ? orders.find((item) => Number(item.id) === orderId) : undefined;
+  const etaText = order ? getEtaLabel(t, order) : null;
   const activePackage = order?.package ?? order?.paquete ?? null;
   const incluyePolichado = Boolean(
     activePackage?.incluyePolichado ?? (order?.faseActual === 'POLICHADO'),
@@ -113,14 +114,10 @@ export default function OrderDetailScreen() {
     setActionError(null);
     markReady(order.id, {
       onSuccess: () => {
-        setLiveAnnouncement('Vehículo marcado como listo para lavar');
+        setLiveAnnouncement(t('orderDetail.markedReadyAnnouncement'));
       },
       onError: (err) => {
-        if (err instanceof ApiError) {
-          setActionError(err.message);
-        } else {
-          setActionError('No se pudo marcar la orden como lista para lavar.');
-        }
+        setActionError(getApiErrorMessage(t, err, 'orderDetail.markReadyError'));
       },
     });
   };
@@ -137,15 +134,11 @@ export default function OrderDetailScreen() {
         onSuccess: (updated) => {
           setPendingManualPhase(null);
           const phaseLabel = t(`phases.${updated.faseActual}`);
-          setLiveAnnouncement(`Fase actualizada manualmente a ${phaseLabel}`);
+          setLiveAnnouncement(t('orderDetail.manualPhaseAnnouncement', { phase: phaseLabel }));
         },
         onError: (err) => {
           setPendingManualPhase(null);
-          if (err instanceof ApiError) {
-            setActionError(err.message);
-          } else {
-            setActionError('No se pudo actualizar la fase manualmente.');
-          }
+          setActionError(getApiErrorMessage(t, err, 'orderDetail.manualPhaseError'));
         },
       },
     );
@@ -178,11 +171,7 @@ export default function OrderDetailScreen() {
                 );
               },
               onError: (err) => {
-                if (err instanceof ApiError) {
-                  setActionError(err.message);
-                } else {
-                  setActionError(t('common.error'));
-                }
+                setActionError(getApiErrorMessage(t, err, 'orderDetail.deliverError'));
               },
             });
           },
@@ -416,7 +405,7 @@ export default function OrderDetailScreen() {
                       {t('orderDetail.package')}:
                     </AppText>
                     <AppText variant="caption" weight="semiBold" style={styles.metaValue}>
-                      {activePackage.nombre}
+                      {getPackageName(t, activePackage)}
                     </AppText>
                   </View>
                 ) : null}
@@ -461,7 +450,7 @@ export default function OrderDetailScreen() {
                   {order.porcentajeProgreso}%
                 </AppText>
 
-                {order.etaLabel ? (
+                {etaText ? (
                   <View
                     style={[
                       styles.etaRow,
@@ -470,7 +459,7 @@ export default function OrderDetailScreen() {
                   >
                     <Icon name="Clock" size={14} color={colors.textMuted} style={styles.etaIcon} />
                     <AppText variant="caption" muted>
-                      {order.etaLabel}
+                      {etaText}
                     </AppText>
                   </View>
                 ) : null}

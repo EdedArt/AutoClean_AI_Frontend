@@ -52,7 +52,7 @@ export function RecentSearches({ onSelectPlate, onAnnounce }: RecentSearchesProp
     clearRollbackError,
   } = useDeleteMyPlate({
     onSuccess: (placa) => {
-      onAnnounce?.(`Placa ${placa} eliminada del historial`);
+      onAnnounce?.(t('client.plateRemovedAnnouncement', { plate: placa }));
     },
     onRollback: (_placa, message) => {
       onAnnounce?.(message);

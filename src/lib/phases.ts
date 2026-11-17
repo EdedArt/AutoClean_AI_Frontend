@@ -5,8 +5,6 @@ export type PhaseIconName = 'Hourglass' | 'Droplets' | 'Sparkles' | 'Wind' | 'Ci
 export interface WashPhase {
   code: WashPhaseCode;
   key: WashPhaseCode;
-  label: string;
-  description: string;
   percent: number;
   icon: PhaseIconName;
   order: number;
@@ -16,8 +14,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'PENDIENTE',
     key: 'PENDIENTE',
-    label: 'En espera',
-    description: 'Tu vehículo está en espera para iniciar el lavado',
     percent: 10,
     icon: 'Hourglass',
     order: 1,
@@ -25,8 +21,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'REMOJO',
     key: 'REMOJO',
-    label: 'Remojo',
-    description: 'Tu vehículo está en etapa de remojo inicial',
     percent: 30,
     icon: 'Droplets',
     order: 2,
@@ -34,8 +28,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'LAVADO',
     key: 'LAVADO',
-    label: 'Enjabonado',
-    description: 'Tu vehículo está siendo enjabonado y lavado',
     percent: 55,
     icon: 'Sparkles',
     order: 4,
@@ -43,8 +35,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'SECADO',
     key: 'SECADO',
-    label: 'Secado',
-    description: 'Tu vehículo está en proceso de secado',
     percent: 80,
     icon: 'Wind',
     order: 5,
@@ -52,8 +42,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'POLICHADO',
     key: 'POLICHADO',
-    label: 'Polichando',
-    description: 'Tu vehículo está siendo polichado',
     percent: 85,
     icon: 'Sparkles',
     order: 6,
@@ -61,8 +49,6 @@ export const WASH_PHASES: readonly WashPhase[] = [
   {
     code: 'LISTO',
     key: 'LISTO',
-    label: 'Listo',
-    description: 'Tu vehículo está listo para entrega',
     percent: 100,
     icon: 'CircleCheck',
     order: 7,

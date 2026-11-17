@@ -92,7 +92,15 @@
     "historyRateLimitSaved": "Query limit reached. Showing saved history.",
     "historyLoadError": "Could not load history",
     "historyLoadErrorDesc": "An issue occurred while fetching your recent searches.",
-    "invalidPlate": "Invalid plate format. Example: ABC-123"
+    "invalidPlate": "Invalid plate format. Example: ABC-123",
+    "historyItemHint": "Tap to view the full status of this plate",
+    "removeFromHistoryA11y": "Remove {{plate}} from history",
+    "removeFromHistoryHint": "Opens a confirmation to remove this plate from history",
+    "loadingHistoryA11y": "Loading recent search history",
+    "progressA11y": "Wash progress: {{progress}}%",
+    "dismissErrorA11y": "Dismiss error notice",
+    "plateRemovedAnnouncement": "Plate {{plate}} removed from history",
+    "removeHistoryRollback": "Could not remove {{plate}} from history. It was restored to the list."
   },
   "ownerPanel": {
     "title": "Wash panel",
@@ -109,7 +117,8 @@
     "noCarsHint": "Register a vehicle in the Register tab to start an order.",
     "noCarsForFilter": "No cars being washed for the selected filter.",
     "loadOrdersError": "Could not load orders",
-    "loadOrdersErrorDesc": "An issue occurred while fetching active orders."
+    "loadOrdersErrorDesc": "An issue occurred while fetching active orders.",
+    "loadingA11y": "Loading active orders"
   },
   "registerVehicle": {
     "title": "Register vehicle",
@@ -141,7 +150,34 @@
     "goToActiveOrder": "Go to active order",
     "loadingCatalogs": "Loading available packages and bays...",
     "errorCatalogs": "Could not load packages or bays.",
-    "partialOrderError": "Vehicle {{placa}} was registered, but order creation failed because {{reason}}. Select another bay or try again to create only the order."
+    "partialOrderError": "Vehicle {{placa}} was registered, but order creation failed because {{reason}}. Select another bay or try again to create only the order.",
+    "packageA11y": "Package {{name}}: {{description}}",
+    "errors": {
+      "ownerNameMin": "Owner's name must be at least 2 characters.",
+      "ownerNameMax": "Owner's name cannot exceed 60 characters.",
+      "brandRequired": "Enter the vehicle brand.",
+      "modelRequired": "Enter the vehicle model.",
+      "colorRequired": "Enter the vehicle color.",
+      "colorMax": "Color cannot exceed 30 characters.",
+      "emailMax": "Email cannot exceed 100 characters.",
+      "emailInvalid": "Enter a valid email address.",
+      "packageRequired": "Select a wash package.",
+      "bayRequired": "Select a free bay.",
+      "bayOccupied": "The selected bay is occupied. Choose another one.",
+      "partialTitle": "Vehicle created, but the order is still pending",
+      "activeOrderTitle": "Active order already exists",
+      "activeOrderMessage": "The vehicle with plate {{placa}} already has an active wash order in progress.",
+      "bayJustTaken": "This bay was just taken. Select a free bay.",
+      "bayOccupiedTitle": "Bay occupied",
+      "bayOccupiedMessage": "The selected bay is already occupied. Choose another free bay.",
+      "ownerNotFound": "There is no client account registered with this email. Leave it empty or correct it.",
+      "invalidOwner": "The email entered does not belong to a client account.",
+      "registerFailedTitle": "Could not complete the registration",
+      "registerFailedMessage": "The vehicle and order could not be registered. Please try again.",
+      "unexpectedTitle": "Unexpected error",
+      "reasonBayTaken": "the selected bay was just taken",
+      "reasonGeneric": "a server error occurred"
+    }
   },
   "orderDetail": {
     "package": "Package",
@@ -177,12 +213,16 @@
     "aiCompletedHint": "The vehicle has reached the Ready phase. You can deliver it to the client.",
     "aiOfflineHint": "The AI engine is unavailable right now. Use the manual control below.",
     "aiCancelButton": "Cancel analysis",
-    "aiErrorTitle": "Could not apply analysis"
+    "aiErrorTitle": "Could not apply analysis",
+    "markedReadyAnnouncement": "Vehicle marked as ready to wash",
+    "markReadyError": "Could not mark the order as ready to wash.",
+    "manualPhaseAnnouncement": "Phase manually updated to {{phase}}",
+    "manualPhaseError": "Could not update the phase manually.",
+    "deliverError": "Could not deliver the vehicle."
   },
   "phases": {
     "PENDIENTE": "Waiting",
     "REMOJO": "Soaking",
-    "ENJABONADO": "Soaping",
     "LAVADO": "Washing",
     "SECADO": "Drying",
     "POLICHADO": "Polishing",
@@ -191,7 +231,6 @@
   "statusMessages": {
     "PENDIENTE": "Your vehicle is waiting",
     "REMOJO": "Your vehicle is soaking",
-    "ENJABONADO": "Your vehicle is being soaped",
     "LAVADO": "Your vehicle is being washed",
     "SECADO": "Your vehicle is being dried",
     "POLICHADO": "Your vehicle is being polished",
@@ -200,5 +239,102 @@
   "coldStart": {
     "title": "Server starting",
     "message": "The server is waking up, this may take up to 60 seconds..."
+  },
+  "validation": {
+    "emailRequired": "Email is required",
+    "emailInvalid": "Invalid email format",
+    "emailMax": "Email cannot exceed 100 characters",
+    "passwordRequired": "Password is required",
+    "passwordMax": "Password cannot exceed 12 characters",
+    "passwordLength": "Password must be between 8 and 12 characters",
+    "nameRequired": "Name is required",
+    "nameMin": "Name must be at least 2 characters",
+    "nameMax": "Name cannot exceed 60 characters",
+    "confirmPasswordRequired": "Confirm your password",
+    "passwordsMismatch": "Passwords do not match",
+    "invalidField": "Check this field"
+  },
+  "packages": {
+    "BASICO": {
+      "name": "Basic Wash",
+      "description": "Exterior wash and quick vacuum"
+    },
+    "PROFUNDO_POLICHADO": {
+      "name": "Deep Wash + Polish",
+      "description": "Exterior and interior wash, disinfection and polish"
+    }
+  },
+  "eta": {
+    "minutes": "{{minutes}} min",
+    "hours": "{{hours}} h",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "Approx. {{duration}}",
+    "pendingApprox": "Pending, approx. {{duration}}",
+    "readyForDelivery": "Ready for delivery"
+  },
+  "aiCard": {
+    "stageSending": "Sending",
+    "stageAnalyzing": "Analyzing",
+    "stageApplying": "Applying",
+    "sendingTitle": "Sending the photo…",
+    "sendingSubtitle": "Securely uploading the image to the server",
+    "analyzingTitle": "The AI is analyzing…",
+    "analyzingSubtitle": "Checking the plate and evaluating wash progress",
+    "applyingTitle": "Applying the result…",
+    "applyingSubtitle": "Updating the service order phase",
+    "announceStart": "Starting AI analysis",
+    "elapsed": "Elapsed time: {{seconds}} s (approx. 35 s)",
+    "fallbackNotice": "Note: the simulated backup provider was used because Gemini was slow."
+  },
+  "aiOutcome": {
+    "advancedTitle": "Phase advanced: {{from}} → {{to}}",
+    "advancedDetail": "The order moved to {{to}} ({{progress}}%).",
+    "blockedTitle": "Advance on hold (minimum time)",
+    "blockedDetail": "{{detected}} was detected, but the {{current}} phase must complete at least 70% of its estimated time before advancing automatically.",
+    "remaining": "{{remaining}} remaining",
+    "notInPackageTitle": "Phase not included in the package",
+    "notInPackageDetail": "{{detected}} was detected, but this order's package does not include polishing. The order stays in {{current}}.",
+    "lowConfidenceTitle": "Confidence too low",
+    "lowConfidenceDetail": "The AI detected {{detected}} with {{confidence}}% confidence (minimum {{min}}%). Take a clearer photo or use manual control.",
+    "previousTitle": "An earlier phase was detected",
+    "previousDetail": "The photo shows {{detected}}, which is earlier than the current phase ({{current}}). Orders never move backwards.",
+    "sameTitle": "No phase change",
+    "sameDetail": "The photo matches the current phase ({{current}}).",
+    "summary": "Plate {{plate}} ({{plateConfidence}}%) · {{phase}} ({{phaseConfidence}}%)",
+    "plateMismatchTitle": "Plate does not match",
+    "plateMismatchDetail": "The plate detected in the photo ({{detected}}) does not match this order's plate ({{expected}}). Check that it is the right vehicle.",
+    "plateMismatchGeneric": "The plate detected in the photo does not match the vehicle of this order.",
+    "plateUnreadableTitle": "Plate unreadable",
+    "plateUnreadableDetail": "The plate could not be read with enough confidence. Try a clearer photo where the plate is visible, or use manual control."
+  },
+  "aiErrors": {
+    "cancelled": "The AI analysis was cancelled by the user.",
+    "fileRead": "The selected photo could not be read or prepared on the device. Try choosing another image from the gallery.",
+    "fileTooLarge": "The photo exceeds the 5 MB size limit. Select a smaller image.",
+    "invalidFile": "Unsupported image format or invalid file. Only JPEG, PNG or WEBP photos are accepted.",
+    "notReady": "Mark the order as \"Ready to wash\" before analyzing with AI.",
+    "alreadyDone": "This order already reached the Ready phase or was delivered.",
+    "rateLimited": "The AI service request limit was reached. Wait a minute or use manual control.",
+    "unavailable": "The AI vision service (Gemini) failed or is temporarily unavailable. Retry or use manual control.",
+    "timeout": "The analysis exceeded the maximum wait time (90 s). Check your Wi-Fi connection and try again, or use manual control.",
+    "network": "No connection to the server while sending the photo. Check that the backend is running and on the same Wi-Fi network.",
+    "unexpected": "An unexpected error occurred while processing the analysis. The order was not changed.",
+    "permissionDenied": "Permission to access the gallery was denied. Enable photo access in your phone Settings to analyze with AI."
+  },
+  "apiErrors": {
+    "NETWORK_ERROR": "No connection to the server. Check your network and try again.",
+    "REQUEST_TIMEOUT": "The server took too long to respond. Please try again.",
+    "RATE_LIMITED": "Too many requests. Wait a moment and try again.",
+    "UNAUTHORIZED": "Your session expired. Please sign in again.",
+    "FORBIDDEN": "You do not have permission to perform this action.",
+    "NOT_FOUND": "The requested resource was not found.",
+    "VALIDATION_ERROR": "Some data is invalid. Please review the form.",
+    "ALREADY_DELIVERED": "This order was already delivered.",
+    "ALREADY_READY": "The order was already marked as ready to wash.",
+    "NOT_READY": "The order is not ready to wash yet.",
+    "INVALID_STATE": "The order is not in a valid state for this action.",
+    "INVALID_PHASE": "Invalid phase.",
+    "BAY_OCCUPIED": "The selected bay is already occupied.",
+    "INTERNAL_ERROR": "A server error occurred. Please try again."
   }
 }

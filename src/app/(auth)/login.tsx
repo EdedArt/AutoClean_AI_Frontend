@@ -13,6 +13,7 @@ import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField, TextFieldInstance } from '@/components/TextField';
 import { useAuth } from '@/features/auth';
+import { getApiErrorMessage } from '@/lib/i18nFormat';
 import { loginSchema } from '@/lib/validation';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
@@ -61,7 +62,7 @@ export default function LoginScreen() {
       for (const issue of result.error.issues) {
         const fieldName = issue.path[0] as 'email' | 'password';
         if (fieldName && !errors[fieldName]) {
-          errors[fieldName] = issue.message;
+          errors[fieldName] = t(issue.message);
         }
       }
       return { isValid: false, errors, data: null };
@@ -147,7 +148,7 @@ export default function LoginScreen() {
           setGeneralError(t('auth.networkError'));
           return;
         }
-        setGeneralError(err.message || t('auth.loginError'));
+        setGeneralError(getApiErrorMessage(t, err, 'auth.loginError'));
         return;
       }
 

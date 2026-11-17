@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -9,6 +10,7 @@ export interface HistorySkeletonProps {
 }
 
 export function HistorySkeleton({ rows = 3 }: HistorySkeletonProps) {
+  const { t } = useTranslation();
   const { colors } = useTheme();
   const [reduceMotion, setReduceMotion] = useState(false);
   const [pulseAnim] = useState(() => new Animated.Value(0.6));
@@ -71,7 +73,7 @@ export function HistorySkeleton({ rows = 3 }: HistorySkeletonProps) {
     <View
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel="Cargando historial de búsquedas recientes"
+      accessibilityLabel={t('client.loadingHistoryA11y')}
     >
       {indices.map((index) => (
         <Animated.View

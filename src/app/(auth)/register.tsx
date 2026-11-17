@@ -12,6 +12,7 @@ import { Logo } from '@/components/Logo';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { TextField, TextFieldInstance } from '@/components/TextField';
 import { useAuth } from '@/features/auth';
+import { getApiErrorMessage } from '@/lib/i18nFormat';
 import { registerSchema } from '@/lib/validation';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 import { useTheme } from '@/theme';
@@ -80,7 +81,7 @@ export default function RegisterScreen() {
       for (const issue of result.error.issues) {
         const fieldName = issue.path[0] as 'nombre' | 'email' | 'password' | 'confirmPassword';
         if (fieldName && !errors[fieldName]) {
-          errors[fieldName] = issue.message;
+          errors[fieldName] = t(issue.message);
         }
       }
       return { isValid: false, errors, data: null };
@@ -191,7 +192,7 @@ export default function RegisterScreen() {
           let hasMapped = false;
           for (const item of err.details as { field?: string; message?: string }[]) {
             if (item.field && item.message) {
-              newErrors[item.field] = item.message;
+              newErrors[item.field] = t('validation.invalidField');
               hasMapped = true;
             }
           }
@@ -211,7 +212,7 @@ export default function RegisterScreen() {
           return;
         }
 
-        setGeneralError(err.message || t('auth.createAccountError'));
+        setGeneralError(getApiErrorMessage(t, err, 'auth.createAccountError'));
         return;
       }
 

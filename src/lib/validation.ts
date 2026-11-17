@@ -2,16 +2,16 @@ import { z } from 'zod';
 
 export const loginSchema = z.object({
   email: z
-    .string({ message: 'El correo es obligatorio' })
+    .string({ message: 'validation.emailRequired' })
     .trim()
     .toLowerCase()
-    .min(1, 'El correo es obligatorio')
-    .email('Formato de correo no válido')
-    .max(100, 'El correo no puede tener más de 100 caracteres'),
+    .min(1, 'validation.emailRequired')
+    .email('validation.emailInvalid')
+    .max(100, 'validation.emailMax'),
   password: z
-    .string({ message: 'La contraseña es obligatoria' })
-    .min(1, 'La contraseña es obligatoria')
-    .max(12, 'La contraseña no puede tener más de 12 caracteres'),
+    .string({ message: 'validation.passwordRequired' })
+    .min(1, 'validation.passwordRequired')
+    .max(12, 'validation.passwordMax'),
 });
 
 export type LoginFormData = z.infer<typeof loginSchema>;
@@ -19,27 +19,27 @@ export type LoginFormData = z.infer<typeof loginSchema>;
 export const registerSchema = z
   .object({
     nombre: z
-      .string({ message: 'El nombre es obligatorio' })
+      .string({ message: 'validation.nameRequired' })
       .trim()
-      .min(2, 'El nombre debe tener al menos 2 caracteres')
-      .max(60, 'El nombre no puede tener más de 60 caracteres'),
+      .min(2, 'validation.nameMin')
+      .max(60, 'validation.nameMax'),
     email: z
-      .string({ message: 'El correo es obligatorio' })
+      .string({ message: 'validation.emailRequired' })
       .trim()
       .toLowerCase()
-      .min(1, 'El correo es obligatorio')
-      .email('Formato de correo no válido')
-      .max(100, 'El correo no puede tener más de 100 caracteres'),
+      .min(1, 'validation.emailRequired')
+      .email('validation.emailInvalid')
+      .max(100, 'validation.emailMax'),
     password: z
-      .string({ message: 'La contraseña es obligatoria' })
-      .min(8, 'La contraseña debe tener entre 8 y 12 caracteres')
-      .max(12, 'La contraseña debe tener entre 8 y 12 caracteres'),
+      .string({ message: 'validation.passwordRequired' })
+      .min(8, 'validation.passwordLength')
+      .max(12, 'validation.passwordLength'),
     confirmPassword: z
-      .string({ message: 'Confirma tu contraseña' })
-      .min(1, 'Confirma tu contraseña'),
+      .string({ message: 'validation.confirmPasswordRequired' })
+      .min(1, 'validation.confirmPasswordRequired'),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: 'Las contraseñas no coinciden',
+    message: 'validation.passwordsMismatch',
     path: ['confirmPassword'],
   });
 

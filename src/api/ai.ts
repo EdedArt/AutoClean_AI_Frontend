@@ -16,10 +16,30 @@ export const aiStatusSchema = z.object({
   minConfidence: z.number(),
 });
 
+export const aiOutcomeCodeEnum = z.enum([
+  'ADVANCED',
+  'BLOCKED_MIN_TIME',
+  'SAME_OR_PREVIOUS_PHASE',
+  'PHASE_NOT_IN_PACKAGE',
+  'LOW_CONFIDENCE',
+]);
+
+export const aiOutcomeSchema = z.object({
+  code: aiOutcomeCodeEnum,
+  from: washPhaseEnum,
+  to: washPhaseEnum,
+  detected: z.string().nullable().optional(),
+  confidence: z.number().optional(),
+  minConfidence: z.number().optional(),
+  remainingMs: z.number().optional().default(0),
+  requiredMs: z.number().optional().default(0),
+});
+
 export const aiAnalysisResponseSchema = z.object({
   provider: z.string(),
   model: z.string(),
   fallbackUsed: z.boolean(),
+  outcome: aiOutcomeSchema.optional(),
   plate: z.object({
     detected: z.string().nullable(),
     expected: z.string(),
@@ -45,6 +65,8 @@ export const aiAnalysisResponseSchema = z.object({
   order: serviceOrderSchema,
 });
 
+export type AiOutcomeCode = z.infer<typeof aiOutcomeCodeEnum>;
+export type AiOutcome = z.infer<typeof aiOutcomeSchema>;
 export type AiStatus = z.infer<typeof aiStatusSchema>;
 export type AiAnalysisResponse = z.infer<typeof aiAnalysisResponseSchema>;
 

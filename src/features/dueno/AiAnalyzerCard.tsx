@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 
 import { useAnalyzeOrderImage } from './useOrderMutations';
-import { type AiAnalysisResponse, type AiStatus } from '@/api/ai';
+import { type AiAnalysisResponse, type AiOutcome, type AiStatus } from '@/api/ai';
 import { ApiError } from '@/api/client';
 import { type ServiceOrder } from '@/api/orders';
 import { AppText } from '@/components/AppText';
@@ -12,6 +13,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
+import { formatRemainingTime } from '@/lib/i18nFormat';
 import { useTheme } from '@/theme';
 import { radius, spacing, withAlpha } from '@/theme/tokens';
 
@@ -25,32 +27,132 @@ export interface AiAnalyzerCardProps {
 
 interface StageCopy {
   stepIndex: number;
-  title: string;
-  subtitle: string;
+  titleKey: string;
+  subtitleKey: string;
 }
 
-const STAGE_LABELS = ['Enviando', 'Analizando', 'Aplicando'] as const;
+const STAGE_LABEL_KEYS = [
+  'aiCard.stageSending',
+  'aiCard.stageAnalyzing',
+  'aiCard.stageApplying',
+] as const;
 
 function getStageCopy(elapsedSeconds: number): StageCopy {
   if (elapsedSeconds < 5) {
     return {
       stepIndex: 0,
-      title: 'Enviando la foto…',
-      subtitle: 'Transmitiendo imagen de forma segura al servidor',
+      titleKey: 'aiCard.sendingTitle',
+      subtitleKey: 'aiCard.sendingSubtitle',
     };
   }
   if (elapsedSeconds < 25) {
     return {
       stepIndex: 1,
-      title: 'La IA está analizando…',
-      subtitle: 'Verificando la placa y evaluando el avance del lavado',
+      titleKey: 'aiCard.analyzingTitle',
+      subtitleKey: 'aiCard.analyzingSubtitle',
     };
   }
   return {
     stepIndex: 2,
-    title: 'Aplicando el resultado…',
-    subtitle: 'Actualizando la fase de la orden de servicio',
+    titleKey: 'aiCard.applyingTitle',
+    subtitleKey: 'aiCard.applyingSubtitle',
   };
+}
+
+type OutcomeTone = 'success' | 'warning' | 'info';
+
+interface OutcomeView {
+  tone: OutcomeTone;
+  icon: 'CircleCheck' | 'Clock' | 'Info' | 'AlertCircle';
+  title: string;
+  detail: string;
+  highlight: string | null;
+}
+
+/** Normalizes the analysis result into an explicit outcome (older backends had no `outcome`). */
+function resolveOutcome(result: AiAnalysisResponse): AiOutcome {
+  if (result.outcome) {
+    return result.outcome;
+  }
+  return {
+    code: result.phase.changed ? 'ADVANCED' : 'SAME_OR_PREVIOUS_PHASE',
+    from: result.phase.previous,
+    to: result.phase.current,
+    detected: result.phase.detected,
+    confidence: result.phase.confidence,
+    remainingMs: 0,
+    requiredMs: 0,
+  };
+}
+
+function describeOutcome(t: TFunction, result: AiAnalysisResponse): OutcomeView {
+  const outcome = resolveOutcome(result);
+  const phaseLabel = (code: string | null | undefined) =>
+    code ? t(`phases.${code}`, { defaultValue: code }) : '—';
+  const from = phaseLabel(outcome.from);
+  const current = phaseLabel(result.phase.current);
+  const detected = phaseLabel(outcome.detected ?? result.phase.detected);
+
+  switch (outcome.code) {
+    case 'ADVANCED':
+      return {
+        tone: 'success',
+        icon: 'CircleCheck',
+        title: t('aiOutcome.advancedTitle', { from, to: phaseLabel(outcome.to) }),
+        detail: t('aiOutcome.advancedDetail', {
+          to: phaseLabel(outcome.to),
+          progress: result.order.porcentajeProgreso,
+        }),
+        highlight: null,
+      };
+    case 'BLOCKED_MIN_TIME': {
+      const remaining = formatRemainingTime(outcome.remainingMs ?? 0);
+      return {
+        tone: 'warning',
+        icon: 'Clock',
+        title: t('aiOutcome.blockedTitle'),
+        detail: t('aiOutcome.blockedDetail', { detected, current }),
+        highlight: t('aiOutcome.remaining', { remaining }),
+      };
+    }
+    case 'PHASE_NOT_IN_PACKAGE':
+      return {
+        tone: 'warning',
+        icon: 'AlertCircle',
+        title: t('aiOutcome.notInPackageTitle'),
+        detail: t('aiOutcome.notInPackageDetail', { detected, current }),
+        highlight: null,
+      };
+    case 'LOW_CONFIDENCE':
+      return {
+        tone: 'warning',
+        icon: 'AlertCircle',
+        title: t('aiOutcome.lowConfidenceTitle'),
+        detail: t('aiOutcome.lowConfidenceDetail', {
+          detected,
+          confidence: Math.round((outcome.confidence ?? result.phase.confidence) * 100),
+          min: Math.round((outcome.minConfidence ?? 0.6) * 100),
+        }),
+        highlight: null,
+      };
+    case 'SAME_OR_PREVIOUS_PHASE':
+    default:
+      return result.phase.regression
+        ? {
+            tone: 'info',
+            icon: 'Info',
+            title: t('aiOutcome.previousTitle'),
+            detail: t('aiOutcome.previousDetail', { detected, current }),
+            highlight: null,
+          }
+        : {
+            tone: 'info',
+            icon: 'Info',
+            title: t('aiOutcome.sameTitle'),
+            detail: t('aiOutcome.sameDetail', { current }),
+            highlight: null,
+          };
+  }
 }
 
 export function AiAnalyzerCard({
@@ -66,7 +168,9 @@ export function AiAnalyzerCard({
 
   const [reduceMotion, setReduceMotion] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<{ title: string; message: string } | null>(
+    null,
+  );
   const [lastResult, setLastResult] = useState<AiAnalysisResponse | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -171,17 +275,14 @@ export function AiAnalyzerCard({
     abortControllerRef.current = null;
   };
 
-  const formatAnalysisError = (err: Error): string => {
+  const formatAnalysisError = (err: Error): { title: string; message: string } => {
+    const failed = t('orderDetail.aiErrorTitle');
     if (err instanceof ApiError) {
       if (err.code === 'REQUEST_CANCELLED') {
-        return 'El análisis con IA fue cancelado por el usuario.';
+        return { title: failed, message: t('aiErrors.cancelled') };
       }
       if (err.code === 'FILE_READ_ERROR' || err.code === 'CLIENT_REQUEST_ERROR') {
-        const detail =
-          typeof err.details === 'string' && err.details.trim().length > 0
-            ? ` (${err.details.trim()})`
-            : '';
-        return `No se pudo leer o preparar la fotografía seleccionada en el dispositivo${detail}. Intenta eligiendo otra imagen de la galería.`;
+        return { title: failed, message: t('aiErrors.fileRead') };
       }
       if (
         err.code === 'FILE_TOO_LARGE' ||
@@ -189,7 +290,26 @@ export function AiAnalyzerCard({
         err.code === 'PAYLOAD_TOO_LARGE' ||
         err.status === 413
       ) {
-        return 'La fotografía supera el tamaño máximo permitido de 5 MB. Selecciona una imagen más liviana.';
+        return { title: failed, message: t('aiErrors.fileTooLarge') };
+      }
+      if (err.code === 'WRONG_VEHICLE') {
+        const details = err.details as { detected?: string; expected?: string } | undefined;
+        return {
+          title: t('aiOutcome.plateMismatchTitle'),
+          message:
+            details?.detected && details?.expected
+              ? t('aiOutcome.plateMismatchDetail', {
+                  detected: details.detected,
+                  expected: details.expected,
+                })
+              : t('aiOutcome.plateMismatchGeneric'),
+        };
+      }
+      if (err.code === 'PLATE_UNREADABLE' || err.status === 422) {
+        return {
+          title: t('aiOutcome.plateUnreadableTitle'),
+          message: t('aiOutcome.plateUnreadableDetail'),
+        };
       }
       if (
         err.code === 'INVALID_FILE_TYPE' ||
@@ -197,26 +317,16 @@ export function AiAnalyzerCard({
         err.code === 'FILE_MISSING' ||
         err.status === 400
       ) {
-        return 'Formato de imagen no compatible o archivo inválido. Solo se aceptan fotografías JPEG, PNG o WEBP.';
-      }
-      if (err.code === 'WRONG_VEHICLE') {
-        const details = err.details as { detected?: string; expected?: string } | undefined;
-        if (details?.detected && details?.expected) {
-          return `La placa detectada en la foto (${details.detected}) no coincide con la placa de esta orden (${details.expected}). Verifica que sea el vehículo correcto.`;
-        }
-        return 'La placa detectada en la fotografía no coincide con el vehículo de esta orden.';
-      }
-      if (err.code === 'PLATE_UNREADABLE' || err.status === 422) {
-        return 'No se pudo leer la placa con suficiente confianza en la imagen. Intenta con una foto más clara donde la placa sea visible o usa el control manual.';
+        return { title: failed, message: t('aiErrors.invalidFile') };
       }
       if (err.code === 'NOT_READY') {
-        return 'Primero debes marcar la orden como "Lista para lavar" antes de analizar con IA.';
+        return { title: failed, message: t('aiErrors.notReady') };
       }
       if (err.code === 'ALREADY_DELIVERED' || err.code === 'INVALID_STATE') {
-        return 'Esta orden ya alcanzó la fase Listo o ya fue entregada.';
+        return { title: failed, message: t('aiErrors.alreadyDone') };
       }
       if (err.code === 'AI_RATE_LIMITED' || err.code === 'RATE_LIMITED' || err.status === 429) {
-        return 'Se alcanzó el límite de solicitudes del servicio de IA. Espera un minuto o usa el control manual.';
+        return { title: failed, message: t('aiErrors.rateLimited') };
       }
       if (
         err.code === 'AI_UNAVAILABLE' ||
@@ -224,18 +334,17 @@ export function AiAnalyzerCard({
         err.status === 503 ||
         err.status === 500
       ) {
-        return 'El servicio de visión por IA (Gemini) falló o no está disponible temporalmente. Puedes reintentar o usar el control manual.';
+        return { title: failed, message: t('aiErrors.unavailable') };
       }
       if (err.code === 'REQUEST_TIMEOUT') {
-        return 'El análisis superó el tiempo máximo de espera (90 s). Verifica tu conexión Wi-Fi e inténtalo de nuevo, o usa el control manual.';
+        return { title: failed, message: t('aiErrors.timeout') };
       }
       if (err.code === 'NETWORK_ERROR') {
-        return 'Sin conexión con el servidor durante el envío de la foto. Verifica que el backend esté activo y en la misma red Wi-Fi.';
+        return { title: failed, message: t('aiErrors.network') };
       }
-      return err.message;
     }
 
-    return 'Ocurrió un error inesperado al procesar la respuesta del análisis. La orden permanece sin cambios.';
+    return { title: failed, message: t('aiErrors.unexpected') };
   };
 
   const handlePickAndAnalyze = async () => {
@@ -244,9 +353,10 @@ export function AiAnalyzerCard({
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        setErrorMessage(
-          'Permiso denegado para acceder a la galería. Habilita el permiso de fotos en los Ajustes de tu teléfono para analizar con IA.',
-        );
+        setErrorMessage({
+          title: t('orderDetail.aiErrorTitle'),
+          message: t('aiErrors.permissionDenied'),
+        });
         return;
       }
 
@@ -270,9 +380,8 @@ export function AiAnalyzerCard({
         selectedAsset.type !== 'image' &&
         selectedAsset.type !== 'livePhoto'
       ) {
-        const formatMsg =
-          'Formato de archivo no compatible. Selecciona una fotografía en formato JPEG, PNG o WEBP.';
-        setErrorMessage(formatMsg);
+        const formatMsg = t('aiErrors.invalidFile');
+        setErrorMessage({ title: t('orderDetail.aiErrorTitle'), message: formatMsg });
         onAnnounce?.(formatMsg);
         return;
       }
@@ -281,7 +390,7 @@ export function AiAnalyzerCard({
       abortControllerRef.current = controller;
       setElapsedSeconds(0);
 
-      onAnnounce?.('Iniciando análisis con inteligencia artificial');
+      onAnnounce?.(t('aiCard.announceStart'));
 
       analyzeImage(
         {
@@ -299,25 +408,24 @@ export function AiAnalyzerCard({
           onSuccess: (response) => {
             abortControllerRef.current = null;
             setLastResult(response);
-            const currentPhaseLabel = t(`phases.${response.phase.current}`);
-            if (response.phase.changed) {
-              onAnnounce?.(`Análisis completado. Fase avanzada a ${currentPhaseLabel}`);
-            } else {
-              onAnnounce?.(
-                `Análisis completado sin cambio de fase. La orden permanece en ${currentPhaseLabel}`,
-              );
-            }
+            const view = describeOutcome(t, response);
+            onAnnounce?.(
+              [view.title, view.detail, view.highlight].filter(Boolean).join('. '),
+            );
           },
           onError: (err) => {
             abortControllerRef.current = null;
             const friendly = formatAnalysisError(err);
             setErrorMessage(friendly);
-            onAnnounce?.(friendly);
+            onAnnounce?.(`${friendly.title}. ${friendly.message}`);
           },
         },
       );
     } catch {
-      setErrorMessage('No se pudo abrir la galería de fotos del dispositivo.');
+      setErrorMessage({
+        title: t('orderDetail.aiErrorTitle'),
+        message: t('profile.openGalleryError'),
+      });
     }
   };
 
@@ -333,6 +441,17 @@ export function AiAnalyzerCard({
   const isActionDisabled = isAnalyzing || isAiOffline || isOrderCompleted || isOrderNotReady;
 
   const stageCopy = getStageCopy(elapsedSeconds);
+  const stageTitle = t(stageCopy.titleKey);
+  const stageSubtitle = t(stageCopy.subtitleKey);
+
+  const outcomeView = lastResult ? describeOutcome(t, lastResult) : null;
+  const outcomeColor = outcomeView
+    ? outcomeView.tone === 'success'
+      ? colors.accent
+      : outcomeView.tone === 'warning'
+        ? colors.warning
+        : colors.info
+    : colors.info;
 
   const sweepTranslateX = sweepAnim.interpolate({
     inputRange: [0, 1],
@@ -398,7 +517,7 @@ export function AiAnalyzerCard({
           accessible
           accessibilityRole="progressbar"
           accessibilityLiveRegion="polite"
-          accessibilityLabel={`${stageCopy.title} ${stageCopy.subtitle}`}
+          accessibilityLabel={`${stageTitle} ${stageSubtitle}`}
         >
           <View style={styles.waitingHeaderRow}>
             <Animated.View
@@ -416,10 +535,10 @@ export function AiAnalyzerCard({
 
             <View style={styles.waitingCopyBlock}>
               <AppText variant="subtitle" weight="bold" style={styles.stageTitle}>
-                {stageCopy.title}
+                {stageTitle}
               </AppText>
               <AppText variant="caption" muted style={styles.stageSubtitle}>
-                {stageCopy.subtitle}
+                {stageSubtitle}
               </AppText>
             </View>
           </View>
@@ -448,13 +567,14 @@ export function AiAnalyzerCard({
 
           {/* 3-stage calm step pills */}
           <View style={styles.stageStepsRow}>
-            {STAGE_LABELS.map((label, index) => {
+            {STAGE_LABEL_KEYS.map((labelKey, index) => {
+              const label = t(labelKey);
               const isCompleted = index < stageCopy.stepIndex;
               const isCurrent = index === stageCopy.stepIndex;
               const dotColor = isCompleted || isCurrent ? colors.primary : colors.disabledText;
 
               return (
-                <View key={label} style={styles.stageStepItem}>
+                <View key={labelKey} style={styles.stageStepItem}>
                   <View
                     style={[
                       styles.stageStepDot,
@@ -491,7 +611,7 @@ export function AiAnalyzerCard({
             >
               <Icon name="Clock" size={13} color={colors.primary} style={styles.elapsedIcon} />
               <AppText variant="caption" muted>
-                Tiempo transcurrido: {elapsedSeconds} s (aprox. 35 s)
+                {t('aiCard.elapsed', { seconds: elapsedSeconds })}
               </AppText>
             </View>
 
@@ -594,83 +714,88 @@ export function AiAnalyzerCard({
                 <Icon name="AlertCircle" size={16} color={colors.danger} />
               </View>
               <AppText variant="caption" weight="bold" color="danger" style={styles.feedbackTitle}>
-                {t('orderDetail.aiErrorTitle')}
+                {errorMessage.title}
               </AppText>
             </View>
             <AppText variant="caption" muted style={styles.feedbackDetail}>
-              {errorMessage}
+              {errorMessage.message}
             </AppText>
           </View>
         </View>
       ) : null}
 
-      {/* Unified Analysis Result Card (Success changed:true / Informational changed:false, no image rendered) */}
-      {lastResult && !isAnalyzing ? (
+      {/* Analysis outcome card: success (advanced), warning (blocked / not applied) or info */}
+      {lastResult && outcomeView && !isAnalyzing ? (
         <View
           style={[
             styles.feedbackCard,
             {
-              backgroundColor: withAlpha(
-                lastResult.phase.changed ? colors.accent : colors.info,
-                isDark ? 0.12 : 0.06,
-              ),
-              borderColor: withAlpha(
-                lastResult.phase.changed ? colors.accent : colors.info,
-                isDark ? 0.38 : 0.26,
-              ),
+              backgroundColor: withAlpha(outcomeColor, isDark ? 0.12 : 0.06),
+              borderColor: withAlpha(outcomeColor, isDark ? 0.38 : 0.26),
             },
           ]}
           accessible
           accessibilityRole="summary"
+          accessibilityLiveRegion="polite"
+          accessibilityLabel={[outcomeView.title, outcomeView.detail, outcomeView.highlight]
+            .filter(Boolean)
+            .join('. ')}
         >
-          <View
-            style={[
-              styles.feedbackAccentBar,
-              { backgroundColor: lastResult.phase.changed ? colors.accent : colors.info },
-            ]}
-          />
+          <View style={[styles.feedbackAccentBar, { backgroundColor: outcomeColor }]} />
           <View style={styles.feedbackBody}>
             <View style={styles.feedbackHeaderLine}>
               <View
                 style={[
                   styles.feedbackIconCircle,
-                  {
-                    backgroundColor: withAlpha(
-                      lastResult.phase.changed ? colors.accent : colors.info,
-                      isDark ? 0.22 : 0.14,
-                    ),
-                  },
+                  { backgroundColor: withAlpha(outcomeColor, isDark ? 0.22 : 0.14) },
                 ]}
               >
-                <Icon
-                  name={lastResult.phase.changed ? 'CircleCheck' : 'Info'}
-                  size={16}
-                  color={lastResult.phase.changed ? colors.accent : colors.info}
-                />
+                <Icon name={outcomeView.icon} size={16} color={outcomeColor} />
               </View>
               <AppText
                 variant="caption"
                 weight="bold"
-                style={[
-                  styles.feedbackTitle,
-                  { color: lastResult.phase.changed ? colors.accent : colors.info },
-                ]}
+                style={[styles.feedbackTitle, { color: outcomeColor }]}
               >
-                {lastResult.phase.changed
-                  ? `${t(`phases.${lastResult.phase.previous}`)} → ${t(`phases.${lastResult.phase.current}`)}`
-                  : t(`phases.${lastResult.phase.current}`)}
+                {outcomeView.title}
               </AppText>
             </View>
 
-            <AppText variant="caption" muted style={styles.feedbackDetail}>
-              {lastResult.phase.changed
-                ? `${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}%) · ${t(`phases.${lastResult.phase.detected}`)} (${Math.round(lastResult.phase.confidence * 100)}%).`
-                : `${lastResult.plate.detected ?? lastResult.plate.expected} (${Math.round(lastResult.plate.confidence * 100)}%) · ${t(`phases.${lastResult.phase.detected}`)} (${Math.round(lastResult.phase.confidence * 100)}%).`}
+            <AppText variant="caption" style={styles.feedbackDetail}>
+              {outcomeView.detail}
+            </AppText>
+
+            {outcomeView.highlight ? (
+              <View
+                style={[
+                  styles.highlightPill,
+                  {
+                    backgroundColor: withAlpha(outcomeColor, isDark ? 0.2 : 0.12),
+                    borderColor: withAlpha(outcomeColor, isDark ? 0.45 : 0.3),
+                  },
+                ]}
+              >
+                <Icon name="Clock" size={13} color={outcomeColor} />
+                <AppText variant="caption" weight="bold" style={{ color: outcomeColor }}>
+                  {outcomeView.highlight}
+                </AppText>
+              </View>
+            ) : null}
+
+            <AppText variant="caption" muted style={styles.summaryLine}>
+              {t('aiOutcome.summary', {
+                plate: lastResult.plate.detected ?? lastResult.plate.expected,
+                plateConfidence: Math.round(lastResult.plate.confidence * 100),
+                phase: t(`phases.${lastResult.phase.detected}`, {
+                  defaultValue: lastResult.phase.detected,
+                }),
+                phaseConfidence: Math.round(lastResult.phase.confidence * 100),
+              })}
             </AppText>
 
             {lastResult.fallbackUsed ? (
               <AppText variant="caption" muted style={styles.fallbackNotice}>
-                Nota: se utilizó el proveedor simulado de respaldo ante demora de Gemini.
+                {t('aiCard.fallbackNotice')}
               </AppText>
             ) : null}
           </View>
@@ -846,6 +971,21 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   feedbackDetail: {
+    lineHeight: 18,
+  },
+  highlightPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: spacing[8],
+    paddingHorizontal: spacing[12],
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  summaryLine: {
+    marginTop: spacing[8],
     lineHeight: 18,
   },
   fallbackNotice: {

@@ -10,6 +10,7 @@ import { AppText } from '@/components/AppText';
 import { Badge } from '@/components/Badge';
 import { Card } from '@/components/Card';
 import { Icon } from '@/components/Icon';
+import { getEtaLabel, getPackageName } from '@/lib/i18nFormat';
 import { getPhase } from '@/lib/phases';
 import { useTheme } from '@/theme';
 import { radius, spacing } from '@/theme/tokens';
@@ -24,6 +25,9 @@ export function StatusCard({ status }: StatusCardProps) {
   const currentPhaseInfo = getPhase(status.fase);
   const phaseLabel = t(`phases.${status.fase}`);
   const phaseDescription = t(`statusMessages.${status.fase}`);
+  const etaText = getEtaLabel(t, status);
+  const statusPackage = status.package ?? status.paquete ?? null;
+  const packageName = statusPackage ? getPackageName(t, statusPackage) : null;
   const currentPhaseColor = phaseColors[status.fase].main;
   const incluyePolichado = Boolean(
     status.incluyePolichado ??
@@ -34,7 +38,7 @@ export function StatusCard({ status }: StatusCardProps) {
 
   const vehicleDetails = `${status.marca} ${status.modelo} · ${status.color}`;
 
-  const accessibilitySummary = `${status.placa}: ${vehicleDetails}. ${phaseLabel}, ${status.porcentajeProgreso}%. ${status.etaLabel ?? ''}`;
+  const accessibilitySummary = `${status.placa}: ${vehicleDetails}. ${phaseLabel}, ${status.porcentajeProgreso}%.${packageName ? ` ${t('orderDetail.package')}: ${packageName}.` : ''} ${etaText ?? ''}`;
 
   return (
     <Card
@@ -53,6 +57,11 @@ export function StatusCard({ status }: StatusCardProps) {
           <AppText variant="body" muted style={styles.vehicleSubtitle}>
             {vehicleDetails}
           </AppText>
+          {packageName ? (
+            <AppText variant="caption" muted style={styles.vehicleSubtitle}>
+              {t('orderDetail.package')}: {packageName}
+            </AppText>
+          ) : null}
         </View>
 
         <Badge variant="phase" phase={status.fase} />
@@ -91,7 +100,7 @@ export function StatusCard({ status }: StatusCardProps) {
             </AppText>
           </View>
 
-          {status.etaLabel ? (
+          {etaText ? (
             <View
               style={[
                 styles.etaBlock,
@@ -100,7 +109,7 @@ export function StatusCard({ status }: StatusCardProps) {
             >
               <Icon name="Clock" size={14} color={colors.textMuted} style={styles.etaIcon} />
               <AppText variant="caption" muted style={styles.etaText}>
-                {status.etaLabel}
+                {etaText}
               </AppText>
             </View>
           ) : null}

@@ -92,7 +92,15 @@
     "historyRateLimitSaved": "Límite de consultas alcanzado. Mostrando el historial guardado.",
     "historyLoadError": "No se pudo cargar el historial",
     "historyLoadErrorDesc": "Ocurrió un inconveniente al consultar tus búsquedas recientes.",
-    "invalidPlate": "Formato de placa no válido. Ejemplo: ABC-123"
+    "invalidPlate": "Formato de placa no válido. Ejemplo: ABC-123",
+    "historyItemHint": "Toca para consultar el estado completo de esta placa",
+    "removeFromHistoryA11y": "Quitar {{plate}} del historial",
+    "removeFromHistoryHint": "Abre confirmación para eliminar esta placa del historial",
+    "loadingHistoryA11y": "Cargando historial de búsquedas recientes",
+    "progressA11y": "Progreso de lavado: {{progress}}%",
+    "dismissErrorA11y": "Cerrar aviso de error",
+    "plateRemovedAnnouncement": "Placa {{plate}} eliminada del historial",
+    "removeHistoryRollback": "No se pudo quitar {{plate}} del historial. Se restauró en la lista."
   },
   "ownerPanel": {
     "title": "Panel de lavado",
@@ -109,7 +117,8 @@
     "noCarsHint": "Registra un vehículo en la pestaña Registrar para iniciar una orden.",
     "noCarsForFilter": "No hay carros en lavado para el filtro seleccionado.",
     "loadOrdersError": "No se pudieron cargar las órdenes",
-    "loadOrdersErrorDesc": "Ocurrió un inconveniente al obtener la lista de órdenes activas."
+    "loadOrdersErrorDesc": "Ocurrió un inconveniente al obtener la lista de órdenes activas.",
+    "loadingA11y": "Cargando órdenes activas del panel"
   },
   "registerVehicle": {
     "title": "Registrar vehículo",
@@ -141,7 +150,34 @@
     "goToActiveOrder": "Ir a la orden activa",
     "loadingCatalogs": "Cargando paquetes y bahías disponibles...",
     "errorCatalogs": "No se pudieron cargar los paquetes o las bahías.",
-    "partialOrderError": "El vehículo {{placa}} se registró correctamente, pero falló la creación de la orden porque {{reason}}. Selecciona otra bahía o intenta nuevamente para crear solo la orden."
+    "partialOrderError": "El vehículo {{placa}} se registró correctamente, pero falló la creación de la orden porque {{reason}}. Selecciona otra bahía o intenta nuevamente para crear solo la orden.",
+    "packageA11y": "Paquete {{name}}: {{description}}",
+    "errors": {
+      "ownerNameMin": "El nombre del dueño debe tener al menos 2 caracteres.",
+      "ownerNameMax": "El nombre del dueño no puede superar 60 caracteres.",
+      "brandRequired": "Ingresa la marca del vehículo.",
+      "modelRequired": "Ingresa el modelo del vehículo.",
+      "colorRequired": "Ingresa el color del vehículo.",
+      "colorMax": "El color no puede superar 30 caracteres.",
+      "emailMax": "El correo no puede superar 100 caracteres.",
+      "emailInvalid": "Ingresa un correo electrónico válido.",
+      "packageRequired": "Selecciona un paquete de lavado.",
+      "bayRequired": "Selecciona una bahía libre.",
+      "bayOccupied": "La bahía seleccionada está ocupada. Elige otra.",
+      "partialTitle": "Vehículo creado, pero la orden quedó pendiente",
+      "activeOrderTitle": "Orden activa existente",
+      "activeOrderMessage": "El vehículo con placa {{placa}} ya tiene una orden de lavado activa en curso.",
+      "bayJustTaken": "Esta bahía acaba de ser ocupada. Selecciona una bahía libre.",
+      "bayOccupiedTitle": "Bahía ocupada",
+      "bayOccupiedMessage": "La bahía seleccionada ya está ocupada. Elige otra bahía libre.",
+      "ownerNotFound": "No existe una cuenta de cliente registrada con este correo. Déjalo vacío o corrígelo.",
+      "invalidOwner": "El correo ingresado no corresponde a una cuenta de cliente.",
+      "registerFailedTitle": "No se pudo completar el registro",
+      "registerFailedMessage": "No fue posible registrar el vehículo y la orden. Inténtalo de nuevo.",
+      "unexpectedTitle": "Error inesperado",
+      "reasonBayTaken": "la bahía seleccionada acaba de ocuparse",
+      "reasonGeneric": "ocurrió un error en el servidor"
+    }
   },
   "orderDetail": {
     "package": "Paquete",
@@ -177,12 +213,16 @@
     "aiCompletedHint": "El vehículo ya alcanzó la fase Listo. Puedes entregarlo al cliente.",
     "aiOfflineHint": "El motor de IA no está disponible en este momento. Utiliza el control manual debajo.",
     "aiCancelButton": "Cancelar análisis",
-    "aiErrorTitle": "No se pudo aplicar el análisis"
+    "aiErrorTitle": "No se pudo aplicar el análisis",
+    "markedReadyAnnouncement": "Vehículo marcado como listo para lavar",
+    "markReadyError": "No se pudo marcar la orden como lista para lavar.",
+    "manualPhaseAnnouncement": "Fase actualizada manualmente a {{phase}}",
+    "manualPhaseError": "No se pudo actualizar la fase manualmente.",
+    "deliverError": "No se pudo entregar el vehículo."
   },
   "phases": {
     "PENDIENTE": "En espera",
     "REMOJO": "Remojo",
-    "ENJABONADO": "Enjabonado",
     "LAVADO": "Lavado",
     "SECADO": "Secado",
     "POLICHADO": "Polichando",
@@ -191,7 +231,6 @@
   "statusMessages": {
     "PENDIENTE": "Tu vehículo está en espera",
     "REMOJO": "Tu vehículo está en remojo",
-    "ENJABONADO": "Tu vehículo está siendo enjabonado",
     "LAVADO": "Tu vehículo está siendo lavado",
     "SECADO": "Tu vehículo está siendo secado",
     "POLICHADO": "Tu vehículo está siendo polichado",
@@ -200,5 +239,102 @@
   "coldStart": {
     "title": "Servidor iniciando",
     "message": "El servidor está despertando, esto puede tardar hasta 60 segundos..."
+  },
+  "validation": {
+    "emailRequired": "El correo es obligatorio",
+    "emailInvalid": "Formato de correo no válido",
+    "emailMax": "El correo no puede tener más de 100 caracteres",
+    "passwordRequired": "La contraseña es obligatoria",
+    "passwordMax": "La contraseña no puede tener más de 12 caracteres",
+    "passwordLength": "La contraseña debe tener entre 8 y 12 caracteres",
+    "nameRequired": "El nombre es obligatorio",
+    "nameMin": "El nombre debe tener al menos 2 caracteres",
+    "nameMax": "El nombre no puede tener más de 60 caracteres",
+    "confirmPasswordRequired": "Confirma tu contraseña",
+    "passwordsMismatch": "Las contraseñas no coinciden",
+    "invalidField": "Revisa este campo"
+  },
+  "packages": {
+    "BASICO": {
+      "name": "Lavado Básico",
+      "description": "Lavado exterior y aspirado rápido"
+    },
+    "PROFUNDO_POLICHADO": {
+      "name": "Lavado Profundo + Polichado",
+      "description": "Lavado exterior, interior, desinfección y polichado"
+    }
+  },
+  "eta": {
+    "minutes": "{{minutes}} min",
+    "hours": "{{hours}} h",
+    "hoursMinutes": "{{hours}} h {{minutes}} min",
+    "approx": "Aprox. {{duration}}",
+    "pendingApprox": "Pendiente, aprox. {{duration}}",
+    "readyForDelivery": "Listo para entregar"
+  },
+  "aiCard": {
+    "stageSending": "Enviando",
+    "stageAnalyzing": "Analizando",
+    "stageApplying": "Aplicando",
+    "sendingTitle": "Enviando la foto…",
+    "sendingSubtitle": "Transmitiendo imagen de forma segura al servidor",
+    "analyzingTitle": "La IA está analizando…",
+    "analyzingSubtitle": "Verificando la placa y evaluando el avance del lavado",
+    "applyingTitle": "Aplicando el resultado…",
+    "applyingSubtitle": "Actualizando la fase de la orden de servicio",
+    "announceStart": "Iniciando análisis con inteligencia artificial",
+    "elapsed": "Tiempo transcurrido: {{seconds}} s (aprox. 35 s)",
+    "fallbackNotice": "Nota: se utilizó el proveedor simulado de respaldo ante demora de Gemini."
+  },
+  "aiOutcome": {
+    "advancedTitle": "Fase avanzada: {{from}} → {{to}}",
+    "advancedDetail": "La orden pasó a {{to}} ({{progress}}%).",
+    "blockedTitle": "Avance en espera por tiempo mínimo",
+    "blockedDetail": "Se detectó {{detected}}, pero la fase {{current}} debe cumplir al menos el 70% de su tiempo estimado antes de avanzar automáticamente.",
+    "remaining": "Faltan {{remaining}}",
+    "notInPackageTitle": "Fase no incluida en el paquete",
+    "notInPackageDetail": "Se detectó {{detected}}, pero el paquete de esta orden no incluye polichado. La orden sigue en {{current}}.",
+    "lowConfidenceTitle": "Confianza insuficiente",
+    "lowConfidenceDetail": "La IA detectó {{detected}} con {{confidence}}% de confianza (mínimo {{min}}%). Toma una foto más clara o usa el control manual.",
+    "previousTitle": "Se detectó una fase anterior",
+    "previousDetail": "La foto muestra {{detected}}, que es anterior a la fase actual ({{current}}). La orden nunca retrocede.",
+    "sameTitle": "Sin cambio de fase",
+    "sameDetail": "La foto corresponde a la fase actual ({{current}}).",
+    "summary": "Placa {{plate}} ({{plateConfidence}}%) · {{phase}} ({{phaseConfidence}}%)",
+    "plateMismatchTitle": "La placa no coincide",
+    "plateMismatchDetail": "La placa detectada en la foto ({{detected}}) no coincide con la de esta orden ({{expected}}). Verifica que sea el vehículo correcto.",
+    "plateMismatchGeneric": "La placa detectada en la fotografía no coincide con el vehículo de esta orden.",
+    "plateUnreadableTitle": "Placa ilegible",
+    "plateUnreadableDetail": "No se pudo leer la placa con suficiente confianza. Intenta con una foto más clara donde la placa sea visible o usa el control manual."
+  },
+  "aiErrors": {
+    "cancelled": "El análisis con IA fue cancelado por el usuario.",
+    "fileRead": "No se pudo leer o preparar la fotografía seleccionada en el dispositivo. Intenta eligiendo otra imagen de la galería.",
+    "fileTooLarge": "La fotografía supera el tamaño máximo permitido de 5 MB. Selecciona una imagen más liviana.",
+    "invalidFile": "Formato de imagen no compatible o archivo inválido. Solo se aceptan fotografías JPEG, PNG o WEBP.",
+    "notReady": "Primero debes marcar la orden como \"Lista para lavar\" antes de analizar con IA.",
+    "alreadyDone": "Esta orden ya alcanzó la fase Listo o ya fue entregada.",
+    "rateLimited": "Se alcanzó el límite de solicitudes del servicio de IA. Espera un minuto o usa el control manual.",
+    "unavailable": "El servicio de visión por IA (Gemini) falló o no está disponible temporalmente. Puedes reintentar o usar el control manual.",
+    "timeout": "El análisis superó el tiempo máximo de espera (90 s). Verifica tu conexión Wi-Fi e inténtalo de nuevo, o usa el control manual.",
+    "network": "Sin conexión con el servidor durante el envío de la foto. Verifica que el backend esté activo y en la misma red Wi-Fi.",
+    "unexpected": "Ocurrió un error inesperado al procesar la respuesta del análisis. La orden permanece sin cambios.",
+    "permissionDenied": "Permiso denegado para acceder a la galería. Habilita el permiso de fotos en los Ajustes de tu teléfono para analizar con IA."
+  },
+  "apiErrors": {
+    "NETWORK_ERROR": "Sin conexión con el servidor. Verifica tu red e inténtalo de nuevo.",
+    "REQUEST_TIMEOUT": "El servidor tardó demasiado en responder. Inténtalo de nuevo.",
+    "RATE_LIMITED": "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.",
+    "UNAUTHORIZED": "Tu sesión expiró. Inicia sesión de nuevo.",
+    "FORBIDDEN": "No tienes permiso para realizar esta acción.",
+    "NOT_FOUND": "No se encontró el recurso solicitado.",
+    "VALIDATION_ERROR": "Algunos datos no son válidos. Revisa el formulario.",
+    "ALREADY_DELIVERED": "Esta orden ya fue entregada.",
+    "ALREADY_READY": "La orden ya estaba marcada como lista para lavar.",
+    "NOT_READY": "La orden aún no está lista para lavar.",
+    "INVALID_STATE": "La orden no está en un estado válido para esta acción.",
+    "INVALID_PHASE": "Fase no válida.",
+    "BAY_OCCUPIED": "La bahía seleccionada ya está ocupada.",
+    "INTERNAL_ERROR": "Ocurrió un error en el servidor. Inténtalo de nuevo."
   }
 }

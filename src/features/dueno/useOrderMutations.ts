@@ -118,7 +118,7 @@ export function useRegisterVehicleAndOrder() {
       } catch (orderErr) {
         if (orderErr instanceof ApiError && orderErr.code === 'ACTIVE_ORDER_EXISTS') {
           throw new ApiError(
-            `El vehículo con placa ${vehicle.placa} ya tiene una orden de lavado activa en curso.`,
+            i18n.t('registerVehicle.errors.activeOrderMessage', { placa: vehicle.placa }),
             'ACTIVE_ORDER_EXISTS',
             409,
             orderErr.details,
@@ -129,8 +129,8 @@ export function useRegisterVehicleAndOrder() {
           const code = orderErr instanceof ApiError ? orderErr.code : 'ORDER_CREATE_FAILED';
           const reason =
             orderErr instanceof ApiError && orderErr.code === 'BAY_OCCUPIED'
-              ? 'la bahía seleccionada acaba de ocuparse'
-              : orderErr.message;
+              ? i18n.t('registerVehicle.errors.reasonBayTaken')
+              : i18n.t('registerVehicle.errors.reasonGeneric');
 
           throw new PartialRegistrationError(
             vehicle,
