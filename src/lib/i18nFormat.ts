@@ -1,6 +1,8 @@
 import type { TFunction } from 'i18next';
 
 import { ApiError } from '@/api/client';
+import type { VehicleBodyType } from '@/api/plates';
+import { mapVehicleColor, normalizeText } from '@/lib/vehicleColor';
 
 /**
  * Helpers that turn backend data (codes, numbers) into localized text.
@@ -38,9 +40,7 @@ export function formatEtaDuration(t: TFunction, minutes: number): string {
   }
   const hours = Math.floor(mins / 60);
   const rest = mins % 60;
-  return rest === 0
-    ? t('eta.hours', { hours })
-    : t('eta.hoursMinutes', { hours, minutes: rest });
+  return rest === 0 ? t('eta.hours', { hours }) : t('eta.hoursMinutes', { hours, minutes: rest });
 }
 
 interface EtaSource {
@@ -68,6 +68,47 @@ export function getEtaLabel(t: TFunction, source: EtaSource): string | null {
     return t('eta.pendingApprox', { duration });
   }
   return t('eta.approx', { duration });
+}
+
+/** Backend default for vehicles registered without a color. */
+const UNSPECIFIED_COLOR = 'sin especificar';
+
+/**
+ * Display name of a typed vehicle color: translated when the color mapper fully recognizes it
+ * ("blanca" -> "White" / "Blanco", "gris plata" -> "Silver"), otherwise exactly as typed.
+ */
+export function getVehicleColorName(t: TFunction, color: string): string {
+  if (normalizeText(color) === UNSPECIFIED_COLOR) {
+    return t('vehicle.colorUnspecified');
+  }
+  const match = mapVehicleColor(color);
+  if (match.exact && match.key) {
+    return t(`vehicle.colors.${match.key}`, { defaultValue: color });
+  }
+  return color.trim();
+}
+
+/** Localized body type name, or null when unknown. */
+export function getBodyTypeName(
+  t: TFunction,
+  bodyType: VehicleBodyType | null | undefined,
+): string | null {
+  return bodyType ? t(`vehicle.bodyTypes.${bodyType}`) : null;
+}
+
+interface VehicleLike {
+  marca: string;
+  modelo: string;
+  color: string;
+}
+
+/** "Brand Model · Color" with the color translated when recognized. */
+export function getVehicleSummary(t: TFunction, vehicle: VehicleLike): string {
+  return t('vehicle.summary', {
+    brand: vehicle.marca.trim(),
+    model: vehicle.modelo.trim(),
+    color: getVehicleColorName(t, vehicle.color),
+  });
 }
 
 /** Milliseconds -> "m:ss" (e.g. 80000 -> "1:20"). */

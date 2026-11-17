@@ -102,6 +102,44 @@
     "plateRemovedAnnouncement": "Placa {{plate}} eliminada del historial",
     "removeHistoryRollback": "No se pudo quitar {{plate}} del historial. Se restauró en la lista."
   },
+  "vehicle": {
+    "summary": "{{brand}} {{model}} · {{color}}",
+    "colorUnspecified": "Sin especificar",
+    "illustrationA11y": "Ilustración del vehículo ({{bodyType}}): {{brand}} {{model}}, color {{color}}. Fase actual: {{phase}}.",
+    "illustrationA11yGeneric": "Ilustración del vehículo: {{brand}} {{model}}, color {{color}}. Fase actual: {{phase}}.",
+    "bodyTypes": {
+      "SEDAN": "Sedán",
+      "HATCHBACK": "Hatchback",
+      "SUV": "Camioneta SUV",
+      "PICKUP": "Camioneta pick-up",
+      "VAN": "Van"
+    },
+    "colors": {
+      "white": "Blanco",
+      "black": "Negro",
+      "silver": "Plata",
+      "gray": "Gris",
+      "darkGray": "Gris oscuro",
+      "lightGray": "Gris claro",
+      "red": "Rojo",
+      "wine": "Vinotinto",
+      "blue": "Azul",
+      "darkBlue": "Azul oscuro",
+      "lightBlue": "Azul claro",
+      "green": "Verde",
+      "darkGreen": "Verde oscuro",
+      "lightGreen": "Verde claro",
+      "yellow": "Amarillo",
+      "orange": "Naranja",
+      "brown": "Café",
+      "beige": "Beige",
+      "gold": "Dorado",
+      "purple": "Morado",
+      "pink": "Rosado",
+      "champagne": "Champaña",
+      "bronze": "Bronce"
+    }
+  },
   "ownerPanel": {
     "title": "Panel de lavado",
     "subtitle": "Órdenes activas y ocupación de bahías en tiempo real",

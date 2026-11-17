@@ -14,11 +14,23 @@ const washPhaseEnum = z.enum([
   'LISTO',
 ]) satisfies z.ZodType<WashPhaseCode>;
 
+export const VEHICLE_BODY_TYPES = ['SEDAN', 'HATCHBACK', 'SUV', 'PICKUP', 'VAN'] as const;
+export type VehicleBodyType = (typeof VEHICLE_BODY_TYPES)[number];
+
 export const plateStatusSchema = z.object({
   placa: z.string(),
   marca: z.string(),
   modelo: z.string(),
   color: z.string(),
+  // Optional so the app keeps working against a backend deployed before these fields existed;
+  // an unexpected value degrades to null (default car) instead of failing the whole response.
+  bodyType: z.enum(VEHICLE_BODY_TYPES).nullable().optional().catch(null),
+  colorHex: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/)
+    .nullable()
+    .optional()
+    .catch(null),
   fase: washPhaseEnum,
   porcentajeProgreso: z.number().int(),
   listoParaLavar: z.boolean(),
